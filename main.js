@@ -72,15 +72,13 @@ function displayMenu() {
         viewProductsByCategory();
         break;
       case "4":
-        console.log("You selected: View products by supplier");
+        viewProductsBySupplier();
         break;
       case "5":
-        console.log("You selected: View all offers within a price range");
+        viewOffersWithinPriceRange();
         break;
       case "6":
-        console.log(
-          "You selected: View all offers that contain a product from a specific category"
-        );
+        viewOffersByCategory(); // Added functionality
         break;
       case "7":
         console.log(
@@ -318,7 +316,235 @@ async function viewProductsByCategory() {
   }
 }
 
-// Other functions remain unchanged...
+// Function to view products by supplier
+async function viewProductsBySupplier() {
+  try {
+    // Fetch all suppliers from the database
+    const suppliers = await Supplier.find();
+
+    // Display the suppliers to the user
+    console.log("Suppliers:");
+    suppliers.forEach((supplier, index) => {
+      console.log(`${index + 1}. ${supplier.name}`);
+    });
+
+    // Ask the user to select a supplier
+    rl.question(
+      "Select a supplier (enter number): ",
+      async (supplierOption) => {
+        // Check if the entered option is valid
+        if (
+          parseInt(supplierOption) >= 1 &&
+          parseInt(supplierOption) <= suppliers.length
+        ) {
+          const selectedSupplier = suppliers[parseInt(supplierOption) - 1];
+
+          // Fetch products associated with the selected supplier
+          const products = await Product.find({
+            supplier: selectedSupplier._id,
+          });
+
+          // Display the products
+          console.log(`Products supplied by "${selectedSupplier.name}":`);
+          products.forEach((product) => {
+            console.log("Name:", product.name);
+            console.log("Price:", product.price);
+            console.log("Cost:", product.cost);
+            console.log("Stock:", product.stock);
+            console.log("---------------------------");
+          });
+        } else {
+          console.log("Invalid selection.");
+        }
+
+        // Prompt the user to press Enter to continue
+        rl.question("Press Enter to continue to the main menu...", () => {
+          // Return to the main menu
+          displayMenu();
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Error viewing products by supplier:", error);
+  }
+}
+
+// Function to view offers within a price range
+async function viewOffersWithinPriceRange() {
+  try {
+    // Ask the user to input the price range
+    rl.question("Enter the minimum price: ", async (minPriceInput) => {
+      rl.question("Enter the maximum price: ", async (maxPriceInput) => {
+        const minPrice = parseFloat(minPriceInput);
+        const maxPrice = parseFloat(maxPriceInput);
+
+        if (isNaN(minPrice) || isNaN(maxPrice)) {
+          console.log("Invalid input. Please enter valid prices.");
+          displayMenu();
+          return;
+        }
+
+        // Fetch products within the specified price range
+        const products = await Product.find({
+          price: { $gte: minPrice, $lte: maxPrice },
+        })
+          .populate("category")
+          .populate("supplier");
+
+        // Display the offers
+        console.log(
+          `Offers within the price range $${minPrice} - $${maxPrice}:`
+        );
+        products.forEach((product) => {
+          console.log("Name:", product.name);
+          console.log(
+            "Category:",
+            product.category ? product.category.name : "N/A"
+          );
+          console.log("Price:", product.price);
+          console.log("Cost:", product.cost);
+          console.log("Stock:", product.stock);
+          console.log(
+            "Supplier:",
+            product.supplier ? product.supplier.name : "N/A"
+          );
+          console.log("---------------------------");
+        });
+
+        // Prompt the user to press Enter to continue
+        rl.question("Press Enter to continue to the main menu...", () => {
+          // Return to the main menu
+          displayMenu();
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error viewing offers within the price range:", error);
+  }
+}
+
+// Function to view all offers that contain a product from a specific category
+async function viewOffersByCategory() {
+  try {
+    // Fetch all categories from the database
+    const categories = await Category.find();
+
+    // Display the categories to the user
+    console.log("Categories:");
+    categories.forEach((category, index) => {
+      console.log(`${index + 1}. ${category.name}`);
+    });
+
+    // Ask the user to select a category
+    rl.question(
+      "Select a category (enter number): ",
+      async (categoryOption) => {
+        // Check if the entered option is valid
+        if (
+          parseInt(categoryOption) >= 1 &&
+          parseInt(categoryOption) <= categories.length
+        ) {
+          const selectedCategory = categories[parseInt(categoryOption) - 1];
+
+          // Fetch offers that contain products from the selected category
+          const offers = await Offer.find({
+            "products.category": selectedCategory._id,
+          }).populate({
+            path: "products",
+            populate: { path: "category" }, // Populate category field of products
+          });
+
+          if (offers.length === 0) {
+            console.log(
+              `No offers found for category "${selectedCategory.name}".`
+            );
+            displayMenu();
+            return;
+          }
+
+          // Display the offers along with their details
+          console.log(`Offers for category "${selectedCategory.name}":`);
+          offers.forEach((offer, index) => {
+            console.log(`Offer ${index + 1}:`);
+            console.log("Included Products:");
+            offer.products.forEach((product) => {
+              console.log("- Name:", product.name);
+              console.log("  Price:", product.price);
+              console.log("  Cost:", product.cost);
+              console.log("  Stock:", product.stock);
+              console.log(
+                "  Category:",
+                product.category ? product.category.name : "N/A"
+              );
+            });
+            console.log("Price:", offer.price);
+            console.log("---------------------------");
+          });
+        } else {
+          console.log("Invalid selection.");
+        }
+
+        // Prompt the user to press Enter to continue
+        rl.question("Press Enter to continue to the main menu...", () => {
+          // Return to the main menu
+          displayMenu();
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Error viewing offers by category:", error);
+  }
+}
+
+// Function to view the number of offers based on the availability of their products in stock
+async function viewOffersByStockAvailability() {
+  try {
+    // Query all offers from the database
+    const offers = await Offer.find().populate("products");
+
+    // Initialize counters for offers with all products in stock, some products in stock, and no products in stock
+    let allProductsInStockCount = 0;
+    let someProductsInStockCount = 0;
+    let noProductsInStockCount = 0;
+
+    // Iterate over each offer
+    for (const offer of offers) {
+      // Check the availability of products in stock
+      const productsInStock = offer.products.filter(
+        (product) => product.stock > 0
+      );
+      if (productsInStock.length === offer.products.length) {
+        allProductsInStockCount++;
+      } else if (productsInStock.length > 0) {
+        someProductsInStockCount++;
+      } else {
+        noProductsInStockCount++;
+      }
+    }
+
+    // Display the summary
+    console.log(
+      "Number of offers with all products in stock:",
+      allProductsInStockCount
+    );
+    console.log(
+      "Number of offers with some products in stock:",
+      someProductsInStockCount
+    );
+    console.log(
+      "Number of offers with no products in stock:",
+      noProductsInStockCount
+    );
+
+    // Prompt the user to press Enter to continue
+    rl.question("Press Enter to continue to the main menu...", () => {
+      // Return to the main menu
+      displayMenu();
+    });
+  } catch (error) {
+    console.error("Error viewing offers by stock availability:", error);
+  }
+}
 
 // Initialize the menu
 displayMenu();
