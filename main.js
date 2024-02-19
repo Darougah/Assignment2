@@ -38,6 +38,15 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model("Product", productSchema);
 
+// Define Offer schema and model
+const offerSchema = new mongoose.Schema({
+  products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  price: { type: Number, required: true },
+  active: { type: Boolean, default: true },
+});
+
+const Offer = mongoose.model("Offer", offerSchema);
+
 // Function to display menu and handle user input
 function displayMenu() {
   console.log("1. Add new category");
@@ -49,7 +58,7 @@ function displayMenu() {
     "6. View all offers that contain a product from a specific category"
   );
   console.log(
-    "7. View the number of offers based on the number of its products in stock"
+    "7. View the number of offers based on the availability of their products in stock"
   );
   console.log("8. Create order for products");
   console.log("9. Create order for offers");
@@ -78,12 +87,10 @@ function displayMenu() {
         viewOffersWithinPriceRange();
         break;
       case "6":
-        viewOffersByCategory(); // Added functionality
+        viewOffersByCategory();
         break;
       case "7":
-        console.log(
-          "You selected: View the number of offers based on the number of its products in stock"
-        );
+        viewOffersByStockAvailability();
         break;
       case "8":
         console.log("You selected: Create order for products");
@@ -495,7 +502,6 @@ async function viewOffersByCategory() {
     console.error("Error viewing offers by category:", error);
   }
 }
-
 // Function to view the number of offers based on the availability of their products in stock
 async function viewOffersByStockAvailability() {
   try {
