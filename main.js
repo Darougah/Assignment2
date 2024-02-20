@@ -623,21 +623,25 @@ async function createOrderForProducts() {
   displayMenu();
 }
 
-// Function to create an order for offers
 async function createOrderForOffers() {
   try {
-    // Fetch all offers from the database
-    const offers = await Offer.find();
+    // Fetch all offers from the database, populating the 'products' field
+    const offers = await Offer.find().populate("products");
 
     // Display the offers to the user
-    console.log("Offers:");
+    console.log("Available Offers:");
     offers.forEach((offer, index) => {
-      console.log(`${index + 1}. Price: $${offer.price.toFixed(2)}`);
+      console.log(`${index + 1}. Offer ID: ${offer._id}`);
+      console.log("   Price:", offer.price);
+      console.log("   Products:");
+      offer.products.forEach((product) => {
+        console.log("     -", product.name);
+      });
     });
 
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
-      promptInput("Select an offer (enter number): ")
+      promptInput("Select an offer for the order (enter index): ")
     );
 
     // Validate the selected offer index
@@ -651,22 +655,27 @@ async function createOrderForOffers() {
       return;
     }
 
-    // Fetch the selected offer
+    // Create the order with the selected offer
     const selectedOffer = offers[selectedOfferIndex - 1];
+    const order = new Order({
+      products: selectedOffer.products.map((product) => ({
+        product: product._id,
+        quantity: 1,
+        details: "",
+      })),
+      offer: selectedOffer._id,
+    });
 
-    // Create the order
-    const order = new Order({ offer: selectedOffer._id });
-
-    // Save the order to the database
     await order.save();
-
-    console.log("Order created successfully!");
+    console.log("Order created successfully:", order);
   } catch (error) {
     console.error("Error creating order for offers:", error);
-  } finally {
-    // Return to the main menu
-    displayMenu();
   }
+
+  // Prompt the user to press Enter to continue
+  promptInput("Press Enter to continue to the main menu...");
+  // Return to the main menu
+  displayMenu();
 }
 
 // Function to add a new supplier
