@@ -45,7 +45,6 @@ const salesOrderSchema = new mongoose.Schema({
 });
 const SalesOrder = mongoose.model("SalesOrder", salesOrderSchema);
 
-// Define Order schema and model
 const orderSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,

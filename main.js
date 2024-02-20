@@ -44,6 +44,20 @@ const offerSchema = new mongoose.Schema({
 
 const Offer = mongoose.model("Offer", offerSchema);
 
+// Define Order schema and model
+const orderSchema = new mongoose.Schema({
+  products: [
+    {
+      product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      quantity: Number,
+      details: String,
+    },
+  ],
+  offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
+});
+
+const Order = mongoose.model("Order", orderSchema);
+
 // Function to display menu and handle user input
 function displayMenu() {
   console.log("1. Add new category");
@@ -94,7 +108,7 @@ function displayMenu() {
       createOrderForProducts();
       break;
     case "9":
-      console.log("You selected: Create order for offers");
+      createOrderForOffers();
       break;
     case "10":
       console.log("You selected: Ship orders");
@@ -331,10 +345,10 @@ async function viewProductsBySupplier() {
     ) {
       const selectedSupplier = suppliers[parseInt(supplierOption) - 1];
 
-      // Fetch products associated with the selected supplier
+      // Fetch products associated with the selected supplier, populating the 'products' field
       const products = await Product.find({
         supplier: selectedSupplier._id,
-      });
+      }).populate("category");
 
       // Display the products
       console.log(`Products supplied by "${selectedSupplier.name}":`);
@@ -512,20 +526,20 @@ async function viewOffersByStockAvailability() {
         0
       );
 
-      if (totalStock === 0) {
+      if (totalStock <= 10) {
         stockAvailability.low++;
-      } else if (totalStock <= 10) {
+      } else if (totalStock <= 50) {
         stockAvailability.medium++;
       } else {
         stockAvailability.high++;
       }
     });
 
-    // Display the results
+    // Display the stock availability
     console.log("Number of offers based on stock availability:");
-    console.log("No products in stock:", stockAvailability.low);
-    console.log("Some products in stock:", stockAvailability.medium);
-    console.log("All products in stock:", stockAvailability.high);
+    console.log("Low (<= 10 units):", stockAvailability.low);
+    console.log("Medium (<= 50 units):", stockAvailability.medium);
+    console.log("High (> 50 units):", stockAvailability.high);
 
     // Prompt the user to press Enter to continue
     promptInput("Press Enter to continue to the main menu...");
@@ -539,23 +553,112 @@ async function viewOffersByStockAvailability() {
   }
 }
 
-// Function to add a new category
-async function addNewCategory() {
-  console.log("Adding a new category:");
-
-  const name = promptInput("Enter category name: ");
-  const description = promptInput("Enter category description: ");
-
+// Function to create an order for products
+async function createOrderForProducts() {
   try {
-    const category = new Category({ name, description });
-    await category.save();
-    console.log("New category added successfully!");
+    // Fetch all products from the database
+    const products = await Product.find();
+
+    // Display the products to the user
+    console.log("Available Products:");
+    products.forEach((product, index) => {
+      console.log(`${index + 1}. ${product.name} - Stock: ${product.stock}`);
+    });
+
+    // Ask the user to select products for the order
+    const selectedProductIndices = promptInput(
+      "Select products for the order (enter indices separated by comma): "
+    )
+      .split(",")
+      .map((index) => parseInt(index.trim()) - 1);
+
+    // Validate the selected product indices
+    if (
+      selectedProductIndices.some(
+        (index) => isNaN(index) || index < 0 || index >= products.length
+      )
+    ) {
+      console.log("Invalid selection.");
+      displayMenu();
+      return;
+    }
+
+    // Create the order with the selected products
+    const order = new Order({
+      products: selectedProductIndices.map((index) => ({
+        product: products[index]._id,
+        quantity: parseInt(
+          promptInput(`Enter quantity for ${products[index].name}: `)
+        ),
+        details: promptInput(`Enter any details for ${products[index].name}: `),
+      })),
+    });
+
+    await order.save();
+    console.log("Order created successfully:", order);
   } catch (error) {
-    console.error("Error adding category:", error);
-  } finally {
-    // Return to the main menu
-    displayMenu();
+    console.error("Error creating order for products:", error);
   }
+
+  // Prompt the user to press Enter to continue
+  promptInput("Press Enter to continue to the main menu...");
+  // Return to the main menu
+  displayMenu();
+}
+
+async function createOrderForOffers() {
+  try {
+    // Fetch all offers from the database, populating the 'products' field
+    const offers = await Offer.find().populate("products");
+
+    // Display the offers to the user
+    console.log("Available Offers:");
+    offers.forEach((offer, index) => {
+      console.log(`${index + 1}. Offer ID: ${offer._id}`);
+      console.log("   Price:", offer.price);
+      console.log("   Products:");
+      offer.products.forEach((product) => {
+        console.log("     -", product.name);
+      });
+    });
+
+    // Ask the user to select an offer
+    const selectedOfferIndex = parseInt(
+      promptInput("Select an offer for the order (enter index): ")
+    );
+
+    // Validate the selected offer index
+    if (
+      isNaN(selectedOfferIndex) ||
+      selectedOfferIndex < 1 ||
+      selectedOfferIndex > offers.length
+    ) {
+      console.log("Invalid selection.");
+      displayMenu();
+      return;
+    }
+
+    // Create the order with the selected offer
+    const selectedOffer = offers[selectedOfferIndex - 1];
+    const order = new Order({
+      products: selectedOffer.products.map((product) => ({
+        product: product._id,
+        quantity: 1,
+        details: "",
+      })),
+      offer: selectedOffer._id,
+    });
+
+    await order.save();
+    console.log("Order created successfully:", order);
+  } catch (error) {
+    console.error("Error creating order for offers:", error);
+  }
+
+  // Prompt the user to press Enter to continue
+  promptInput("Press Enter to continue to the main menu...");
+  // Return to the main menu
+  displayMenu();
 }
 
 // Function to add a new supplier
@@ -577,94 +680,34 @@ async function addNewSupplier() {
   }
 }
 
-// Function to view all suppliers
+// Function to view existing suppliers
 async function viewSuppliers() {
   try {
     // Fetch all suppliers from the database
     const suppliers = await Supplier.find();
 
-    // Display the suppliers
+    // Display the suppliers to the user
     console.log("Suppliers:");
-    suppliers.forEach((supplier) => {
-      console.log("Name:", supplier.name);
-      console.log("Description:", supplier.description);
-      console.log("---------------------------");
+    suppliers.forEach((supplier, index) => {
+      console.log(`${index + 1}. ${supplier.name}`);
     });
   } catch (error) {
     console.error("Error viewing suppliers:", error);
-  } finally {
-    // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
-    // Return to the main menu
-    displayMenu();
   }
+
+  // Prompt the user to press Enter to continue
+  promptInput("Press Enter to continue to the main menu...");
+  // Return to the main menu
+  displayMenu();
 }
 
-async function createOrderForProducts() {
-  console.log("Creating order for products:");
+// Function to start the application
+function startApp() {
+  console.log("Welcome to the Product Management System!");
 
-  let finished = false;
-  let orderProducts = [];
-
-  while (!finished) {
-    // Display existing products
-    const products = await Product.find();
-    console.log("Existing Products:");
-    products.forEach((product, index) => {
-      console.log(`${index + 1}. ${product.name} (Stock: ${product.stock})`);
-    });
-
-    // Ask user to select a product
-    const selectedProductIndex = await askQuestion(
-      "Select a product from the list (enter number) or type 'done' to finish: "
-    );
-    if (selectedProductIndex === "done") {
-      finished = true;
-      continue;
-    }
-
-    const selectedProduct = products[parseInt(selectedProductIndex) - 1];
-
-    // Ask for quantity and additional details
-    const quantityInput = await askQuestion("Enter quantity: ");
-    const quantity = parseInt(quantityInput);
-    if (isNaN(quantity) || quantity <= 0 || selectedProduct.stock < quantity) {
-      console.log("Invalid quantity or insufficient stock.");
-      continue;
-    }
-
-    const details = await askQuestion("Enter additional details: ");
-
-    // Decrease the stock of the selected product
-    selectedProduct.stock -= quantity;
-    await selectedProduct.save();
-
-    // Add the selected product to the order
-    orderProducts.push({
-      product: selectedProduct._id,
-      quantity,
-      details,
-    });
-
-    console.log("Product added to order.");
-  }
-
-  // Create the order
-  try {
-    const order = new Order({ products: orderProducts });
-    await order.save();
-    console.log("Order created successfully:", order);
-  } catch (error) {
-    console.error("Error creating order:", error);
-  } finally {
-    // Return to the main menu
-    displayMenu();
-  }
-}
-
-async function askQuestion(question) {
-  return promptInput(question);
+  // Display the main menu
+  displayMenu();
 }
 
 // Start the application
-displayMenu();
+startApp();
