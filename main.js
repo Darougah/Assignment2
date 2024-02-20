@@ -628,46 +628,7 @@ async function createOrderForOffers() {
       });
     });
 
-    async function shipOrder(orderId) {
-  try {
-    const order = await Order.findById(orderId).populate('products.product');
-
-    if (!order) {
-      console.log("Order not found.");
-      return;
-    }
-
-    if (order.status === "Shipped") {
-      console.log("Order is already shipped.");
-      return;
-    }
-
-    // Confirm the shipment
-    const confirmation = promptInput(`Do you wish to ship order ${orderId}? (yes/no): `);
-
-    if (confirmation.toLowerCase() === "yes") {
-      order.status = "Shipped";
-      await order.save();
-      for (const orderProduct of order.products) {
-        const productId = orderProduct.product._id;
-        const product = await Product.findById(productId);
-
-        // Subtract the quantity of the product in the order from the database
-        if (product) {
-          product.stock -= orderProduct.quantity;
-          await product.save();
-        }
-      }
-
-      console.log(`Order ${orderId} has been shipped.`);
-    } else {
-      console.log("Shipment canceled.");
-    }
-  } catch (error) {
-    console.error("Error shipping order:", error);
-  }
-}
-
+  
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
       promptInput("Select an offer for the order (enter index): ")
@@ -726,6 +687,18 @@ async function shipOrder(orderId) {
     if (confirmation.toLowerCase() === "yes") {
       order.status = "Shipped";
       await order.save();
+
+      // Update product stock for each product in the order
+      for (const orderProduct of order.products) {
+        const productId = orderProduct.product._id;
+        const product = await Product.findById(productId);
+    
+        // Subtract the quantity of the product in the order from the database
+        if (product) {
+            product.stock -= orderProduct.quantity;
+            await product.save();
+        }
+    }
       console.log(`Order ${orderId} has been shipped.`);
     } else {
       console.log("Shipment canceled.");
@@ -734,6 +707,7 @@ async function shipOrder(orderId) {
     console.error("Error shipping order:", error);
   }
 }
+
 
 async function viewOrdersForShipment() {
   try {
