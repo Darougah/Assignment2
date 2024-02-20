@@ -114,7 +114,7 @@ function displayMenu() {
       createOrderForOffers();
       break;
     case "10":
-      console.log("You selected: Ship orders");
+      viewOrdersForShipment();
       break;
     case "11":
       addNewSupplier();
@@ -628,6 +628,46 @@ async function createOrderForOffers() {
       });
     });
 
+    async function shipOrder(orderId) {
+  try {
+    const order = await Order.findById(orderId).populate('products.product');
+
+    if (!order) {
+      console.log("Order not found.");
+      return;
+    }
+
+    if (order.status === "Shipped") {
+      console.log("Order is already shipped.");
+      return;
+    }
+
+    // Confirm the shipment
+    const confirmation = promptInput(`Do you wish to ship order ${orderId}? (yes/no): `);
+
+    if (confirmation.toLowerCase() === "yes") {
+      order.status = "Shipped";
+      await order.save();
+      for (const orderProduct of order.products) {
+        const productId = orderProduct.product._id;
+        const product = await Product.findById(productId);
+
+        // Subtract the quantity of the product in the order from the database
+        if (product) {
+          product.stock -= orderProduct.quantity;
+          await product.save();
+        }
+      }
+
+      console.log(`Order ${orderId} has been shipped.`);
+    } else {
+      console.log("Shipment canceled.");
+    }
+  } catch (error) {
+    console.error("Error shipping order:", error);
+  }
+}
+
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
       promptInput("Select an offer for the order (enter index): ")
@@ -666,6 +706,70 @@ async function createOrderForOffers() {
   // Return to the main menu
   displayMenu();
 }
+async function shipOrder(orderId) {
+  try {
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      console.log("Order not found.");
+      return;
+    }
+
+    if (order.status === "Shipped") {
+      console.log("Order is already shipped.");
+      return;
+    }
+
+    // Confirm the shipment
+    const confirmation = promptInput(`Do you wish to ship order ${orderId}? (yes/no): `);
+
+    if (confirmation.toLowerCase() === "yes") {
+      order.status = "Shipped";
+      await order.save();
+      console.log(`Order ${orderId} has been shipped.`);
+    } else {
+      console.log("Shipment canceled.");
+    }
+  } catch (error) {
+    console.error("Error shipping order:", error);
+  }
+}
+
+async function viewOrdersForShipment() {
+  try {
+    // Fetch all orders from the database
+    const orders = await Order.find();
+
+    // Display the orders with sequential numbers to the user
+    console.log("Orders available for shipment:");
+    orders.forEach((order, index) => {
+      console.log(`${index + 1}. Order ID: ${order._id} - Status: ${order.status}`);
+    });
+
+    // Ask the user to select an order for shipment
+    const selectedOrderIndex = parseInt(promptInput("Select an order for shipment (enter number): ")) - 1;
+
+    // Validate the selected order index
+    if (isNaN(selectedOrderIndex) || selectedOrderIndex < 0 || selectedOrderIndex >= orders.length) {
+      console.log("Invalid order selection.");
+      return;
+    }
+
+    // Get the selected order by its index
+    const selectedOrder = orders[selectedOrderIndex];
+
+    // Call the shipOrder function to change the status to "Shipped"
+    await shipOrder(selectedOrder._id);
+  } catch (error) {
+    console.error("Error viewing orders for shipment:", error);
+  }
+
+  // Prompt the user to press Enter to continue
+  promptInput("Press Enter to continue to the main menu...");
+  // Return to the main menu
+  displayMenu();
+}
+
 
 // Function to add a new supplier
 async function addNewSupplier() {
