@@ -582,10 +582,31 @@ async function addNewCategory() {
         parseInt(response) >= 1 &&
         parseInt(response) <= categories.length
       ) {
-        console.log(
-          `You selected category: ${categories[parseInt(response) - 1].name}`
-        );
-        displayMenu();
+        const selectedCategory = categories[parseInt(response) - 1];
+        // Fetch products belonging to the selected category
+        const products = await Product.find({
+          category: selectedCategory._id,
+        }).populate("supplier");
+
+        // Display the products
+        console.log(`Products in category "${selectedCategory.name}":`);
+        products.forEach((product) => {
+          console.log("Name:", product.name);
+          console.log("Price:", product.price);
+          console.log("Cost:", product.cost);
+          console.log("Stock:", product.stock);
+          console.log(
+            "Supplier:",
+            product.supplier ? product.supplier.name : "N/A"
+          );
+          console.log("---------------------------");
+        });
+
+        // Prompt the user to press Enter to continue
+        rl.question("Press Enter to continue to the main menu...", () => {
+          // Return to the main menu
+          displayMenu();
+        });
       } else {
         console.log("Invalid selection.");
         displayMenu();
