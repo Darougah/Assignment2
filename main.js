@@ -49,11 +49,14 @@ const orderSchema = new mongoose.Schema({
   products: [
     {
       product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      name: String,
+      price: Number,
       quantity: Number,
       details: String,
     },
   ],
   offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
+  status: { type: String, default: "Pending" },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -591,11 +594,14 @@ async function createOrderForProducts() {
           promptInput(`Enter quantity for ${products[index].name}: `)
         ),
         details: promptInput(`Enter any details for ${products[index].name}: `),
+        name: products[index].name,  // Corrected: Access name property from each product
+        price: products[index].price,  // Corrected: Access price property from each product
       })),
+      status: "Pending",
     });
 
     await order.save();
-    console.log("Order created successfully:", order);
+    console.log("Order created successfully:");
   } catch (error) {
     console.error("Error creating order for products:", error);
   }
