@@ -45,6 +45,18 @@ const salesOrderSchema = new mongoose.Schema({
 });
 const SalesOrder = mongoose.model("SalesOrder", salesOrderSchema);
 
+const orderSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
+  quantity: { type: Number, required: true },
+  details: { type: String },
+});
+
+const Order = mongoose.model("Order", orderSchema);
+
 // Connect to MongoDB
 await mongoose.connect("mongodb://127.0.0.1:27017/product_management_system");
 
