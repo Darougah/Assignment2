@@ -552,5 +552,47 @@ async function viewOffersByStockAvailability() {
   }
 }
 
+// Function to add a new category
+async function addNewCategory() {
+  // Fetch existing categories
+  const categories = await Category.find();
+  console.log("Existing Categories:");
+  categories.forEach((category, index) => {
+    console.log(`${index + 1}. ${category.name}`);
+  });
+
+  rl.question(
+    "Select a category from the list (enter number) or add a new one (type 'new'): ",
+    async (response) => {
+      if (response === "new") {
+        rl.question("Enter category name: ", async (name) => {
+          rl.question("Enter category description: ", async (description) => {
+            try {
+              const category = new Category({ name, description });
+              await category.save();
+              console.log("New category added successfully!");
+              displayMenu();
+            } catch (error) {
+              console.error("Error adding category:", error);
+              displayMenu();
+            }
+          });
+        });
+      } else if (
+        parseInt(response) >= 1 &&
+        parseInt(response) <= categories.length
+      ) {
+        console.log(
+          `You selected category: ${categories[parseInt(response) - 1].name}`
+        );
+        displayMenu();
+      } else {
+        console.log("Invalid selection.");
+        displayMenu();
+      }
+    }
+  );
+}
+
 // Initialize the menu
 displayMenu();
