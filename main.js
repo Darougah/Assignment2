@@ -38,6 +38,7 @@ const Product = mongoose.model("Product", productSchema);
 // Define Offer schema and model
 const offerSchema = new mongoose.Schema({
   products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  name: String,
   price: { type: Number, required: true },
   active: { type: Boolean, default: true },
 });
@@ -667,6 +668,8 @@ async function createOrderForOffers() {
     const order = new Order({
       products: selectedOffer.products.map((product) => ({
         product: product._id,
+        name: product.name,
+        price: product.price,
         quantity: 1,
         details: "",
       })),
