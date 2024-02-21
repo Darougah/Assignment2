@@ -18,7 +18,7 @@ const Category = mongoose.model("Category", categorySchema);
 // Define Supplier schema and model
 const supplierSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  description: { type: String },
+  contact: { type: String }, // Change 'description' to 'contact'
 });
 
 const Supplier = mongoose.model("Supplier", supplierSchema);
@@ -804,7 +804,7 @@ async function viewSuppliers() {
     console.log("Suppliers:");
     suppliers.forEach((supplier, index) => {
       console.log(`${index + 1}. ${supplier.name}`);
-      console.log("Description:", supplier.description);
+      console.log("Contact:", supplier.contact);
       console.log("---------------------------");
     });
   } catch (error) {
