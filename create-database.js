@@ -195,7 +195,7 @@ const OrdersData = [
         details: "Label 2442", 
       },
     ],
-    status: "pending",
+    status: "Pending",
     totalCost: 1000,
     totalNetCost: 800,
   },

@@ -667,6 +667,7 @@ async function createOrderForOffers() {
       });
     });
 
+    
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
       promptInput("Select an offer for the order (enter index): ")
@@ -691,7 +692,9 @@ async function createOrderForOffers() {
         name: product.name,
         price: product.price,
         cost: product.cost,
-        quantity: 1,
+        quantity: parseInt(
+          promptInput(`Enter quantity for: ${product.name}: `)
+        ),
         details: "",
       })),
       offer: selectedOffer._id,
@@ -708,7 +711,7 @@ async function createOrderForOffers() {
     );
 
     await order.save();
-    console.log("Order created successfully:", order);
+    console.log("Order created successfully!");
   } catch (error) {
     console.error("Error creating order for offers:", error);
   }
@@ -859,9 +862,22 @@ async function viewAllSalesOrders() {
     let totalValue = 0;
     orders.forEach((order) => {
       console.log(`Order Number: ${order._id}`);
-      console.log(`Date: ${order.date}`);
-      console.log(`Status: ${order.status}`);
+      console.log(); // Blank row
+      order.products.forEach((product, index) => {
+        console.log(`  ${index + 1}. Product Name: ${product.name}`);
+        console.log(`     Quantity: ${product.quantity}`);
+        console.log(`     Unit Price: $${product.price.toFixed(2)}`);
+      });
+      const formattedDate = order.date.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      console.log(); // Blank row
       console.log(`Total Cost: $${order.totalCost.toFixed(2)}`);
+      console.log(); // Blank row
+      console.log(`Order Date: ${formattedDate}`);
+      console.log(`Status: ${order.status}`);
       console.log("---------------------------");
       totalValue += order.totalCost;
     });
@@ -880,23 +896,27 @@ async function viewProfitFromSales() {
   try {
     // Fetch all orders from the database
     const orders = await Order.find();
-
-    // Display the details of all sales orders
-    console.log("All Sales Orders:");
     let totalValue = 0;
     let totalNetValue = 0;
+        // Display the details of all sales orders
+    console.log("All Sales Orders:");
     orders.forEach((order) => {
-      console.log(`Order Number: ${order._id}`);
+      console.log(`Order number: ${order._id}`);
       console.log(`Date: ${order.date}`);
       console.log(`Status: ${order.status}`);
-      console.log(`Total Cost Value: $${order.totalNetCost.toFixed(2)}`);
-      console.log(`Total Order Value: $${order.totalCost.toFixed(2)}`);
+      console.log(`Total cost value: $${order.totalNetCost.toFixed(2)}`);
+      console.log(`Total order value: $${order.totalCost.toFixed(2)}`);
       console.log("---------------------------");
       totalValue += order.totalCost;
       totalNetValue += order.totalNetCost;
     });
-    console.log(`All Sales Orders Cost value: $${totalNetValue.toFixed(2)}`);
-    console.log(`All Sales Orders total value: $${totalValue.toFixed(2)}`);
+    console.log(`All sales orders cost value: $${totalNetValue.toFixed(2)}`);
+    console.log(`All sales orders total value: $${totalValue.toFixed(2)}`);
+    console.log("---------------------------");
+
+    const totalProfitMargin = totalValue - totalNetValue;
+    console.log(`Total profit margin: $${totalProfitMargin.toFixed(2)}`);
+    console.log("---------------------------");
   } catch (error) {
     console.error("Error viewing all sales orders:", error);
   } finally {
