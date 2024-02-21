@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import prompt from "prompt-sync";
 
 // Establish MongoDB connection
-mongoose.connect("mongodb://localhost:27017/product_management_system");
+mongoose.connect("mongodb://127.0.0.1:27017/product_management_system");
 
 // Create prompt
 const promptInput = prompt();
