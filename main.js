@@ -78,10 +78,9 @@ function displayMenu() {
   console.log("8. Create order for products");
   console.log("9. Create order for offers");
   console.log("10. Ship orders");
-  console.log("11. Add a new supplier");
-  console.log("12. View suppliers");
-  console.log("13. View all sales");
-  console.log("14. View sum of all profits");
+  console.log("11. View suppliers");
+  console.log("12. View all sales");
+  console.log("13. View sum of all profits");
   console.log("0. Exit");
 
   const option = promptInput("Select an option: ");
@@ -118,15 +117,12 @@ function displayMenu() {
       viewOrdersForShipment();
       break;
     case "11":
-      addNewSupplier();
-      break;
-    case "12":
       viewSuppliers();
       break;
-    case "13":
+    case "12":
       console.log("You selected: View all sales");
       break;
-    case "14":
+    case "13":
       console.log("You selected: View sum of all profits");
       break;
     case "0":
@@ -772,27 +768,27 @@ async function viewOrdersForShipment() {
   displayMenu();
 }
 
-// Function to add a new supplier
-async function addNewSupplier() {
-  try {
-    // Prompt the user to enter supplier details
-    const name = promptInput("Enter supplier name: ");
-    const description = promptInput("Enter supplier description: ");
+// // Function to add a new supplier
+// async function addNewSupplier() {
+//   try {
+//     // Prompt the user to enter supplier details
+//     const name = promptInput("Enter supplier name: ");
+//     const description = promptInput("Enter supplier description: ");
 
-    // Create a new supplier instance
-    const newSupplier = new Supplier({ name, description });
+//     // Create a new supplier instance
+//     const newSupplier = new Supplier({ name, description });
 
-    // Save the new supplier to the database
-    await newSupplier.save();
+//     // Save the new supplier to the database
+//     await newSupplier.save();
 
-    console.log("New supplier added successfully!");
-  } catch (error) {
-    console.error("Error adding new supplier:", error);
-  } finally {
-    // Return to the main menu
-    displayMenu();
-  }
-}
+//     console.log("New supplier added successfully!");
+//   } catch (error) {
+//     console.error("Error adding new supplier:", error);
+//   } finally {
+//     // Return to the main menu
+//     displayMenu();
+//   }
+// }
 
 // Function to view all suppliers
 async function viewSuppliers() {
