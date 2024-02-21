@@ -87,7 +87,7 @@ function displayMenu() {
   console.log("10. Ship orders");
   console.log("11. Add a new supplier");
   console.log("12. View suppliers");
-  console.log("13. View all sales");
+  console.log("13. View all sales orders");
   console.log("14. View sum of all profits");
   console.log("0. Exit");
 
@@ -917,6 +917,13 @@ async function viewProfitFromSales() {
     const totalProfitMargin = totalValue - totalNetValue;
     console.log(`Total profit margin: $${totalProfitMargin.toFixed(2)}`);
     console.log("---------------------------");
+
+    const offerOption = promptInput('Press "y" to view offers by product or press Enter to continue: ');
+
+    if (offerOption.toLowerCase() === 'y') {
+      // View offers by product
+      await viewOffersByProduct();
+    }
   } catch (error) {
     console.error("Error viewing all sales orders:", error);
   } finally {
@@ -926,6 +933,96 @@ async function viewProfitFromSales() {
     displayMenu();
   }
 }
+
+async function viewOffersByProduct() {
+  try {
+    // Fetch all products from the database
+    const products = await Product.find();
+
+    // Display the products to the user
+    console.log("Products:");
+    products.forEach((product, index) => {
+      console.log(`${index + 1}. ${product.name}`);
+    });
+
+    // Ask the user to select a product
+    const productOption = promptInput("Select a product (enter number): ");
+
+    // Check if the entered option is valid
+    if (
+      parseInt(productOption) >= 1 &&
+      parseInt(productOption) <= products.length
+    ) {
+      const selectedProduct = products[parseInt(productOption) - 1];
+
+      // Use aggregation to find offers containing the selected product
+      const offers = await Offer.aggregate([
+        {
+          $lookup: {
+            from: "products",
+            localField: "products",
+            foreignField: "_id",
+            as: "products",
+          },
+        },
+        {
+          $match: {
+            "products._id": selectedProduct._id,
+          },
+        },
+        {
+          $unwind: "$products",
+        },
+        {
+          $lookup: {
+            from: "suppliers",
+            localField: "products.supplier",
+            foreignField: "_id",
+            as: "products.supplier",
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            price: { $first: "$price" },
+            products: { $push: "$products" },
+            totalNetPrice: { $sum: "$products.cost" }, // Calculate total net price
+          },
+        },
+      ]);
+
+      if (offers.length > 0) {
+        // Display the offers containing the selected product
+        console.log(`Offers containing product "${selectedProduct.name}":`);
+        offers.forEach((offer) => {
+          console.log("Included Products:");
+          console.log("Offer ID: " + offer._id);
+          offer.products.forEach((product) => {
+            console.log("  - Name:", product.name);
+            console.log("  - Cost:", product.cost);
+            console.log("  - Sales price:", product.price);
+            console.log(); // Blank row
+          });
+          console.log("---------------------------");
+          console.log("Total Net Price: $" + offer.totalNetPrice.toFixed(2));
+          console.log("Price: $" + offer.price.toFixed(2));
+        });
+      } else {
+        console.log(`Product "${selectedProduct.name}" is not in any offerings.`);
+      }
+    } else {
+      console.log("Invalid selection.");
+    }
+
+    // Prompt the user to press Enter to continue
+    promptInput("Press Enter to continue to the main menu...");
+    // Return to the main menu
+    displayMenu();
+  } catch (error) {
+    console.error("Error viewing offers by product:", error);
+  }
+}
+
 
 // Initial function call to start the program
 displayMenu();
