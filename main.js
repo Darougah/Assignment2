@@ -43,6 +43,7 @@ const offerSchema = new mongoose.Schema({
   active: { type: Boolean, default: true },
   date: { type: Date, default: Date.now },
   totalCost: { type: Number, default: 0 },
+  totalNetCost: { type: Number, default: 0 },
 });
 
 const Offer = mongoose.model("Offer", offerSchema);
@@ -54,6 +55,7 @@ const orderSchema = new mongoose.Schema({
       product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
       name: String,
       price: Number,
+      cost: Number,
       quantity: Number,
       details: String,
     },
@@ -62,6 +64,7 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, default: "Pending" },
   date: { type: Date, default: Date.now },
   totalCost: { type: Number, default: 0 },
+  totalNetCost: { type: Number, default: 0 },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -84,7 +87,7 @@ function displayMenu() {
   console.log("10. Ship orders");
   console.log("11. Add a new supplier");
   console.log("12. View suppliers");
-  console.log("13. View all sales");
+  console.log("13. View all sales orders");
   console.log("14. View sum of all profits");
   console.log("0. Exit");
 
@@ -131,7 +134,7 @@ function displayMenu() {
       viewAllSalesOrders();
       break;
     case "14":
-      console.log("You selected: View sum of all profits");
+      viewProfitFromSales();
       break;
     case "0":
       // Exit the program
@@ -618,6 +621,7 @@ async function createOrderForProducts() {
         details: promptInput(`Enter any details for ${products[index].name}: `),
         name: products[index].name, // Corrected: Access name property from each product
         price: products[index].price, // Corrected: Access price property from each product
+        cost: products[index].cost, // Corrected: Access cost property from each product
       })),
       status: "Pending",
     });
@@ -626,6 +630,14 @@ async function createOrderForProducts() {
       (total, product) => total + product.quantity * product.price,
       0
     );
+
+    order.totalNetCost = order.products.reduce(
+      (total, product) => total + product.quantity * product.cost,
+      0
+    );
+
+
+
 
     await order.save();
     console.log("Order created successfully:");
@@ -655,6 +667,7 @@ async function createOrderForOffers() {
       });
     });
 
+    
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
       promptInput("Select an offer for the order (enter index): ")
@@ -678,7 +691,10 @@ async function createOrderForOffers() {
         product: product._id,
         name: product.name,
         price: product.price,
-        quantity: 1,
+        cost: product.cost,
+        quantity: parseInt(
+          promptInput(`Enter quantity for: ${product.name}: `)
+        ),
         details: "",
       })),
       offer: selectedOffer._id,
@@ -689,8 +705,13 @@ async function createOrderForOffers() {
       0
     );
 
+    order.totalNetCost = order.products.reduce(
+      (total, product) => total + product.quantity * product.cost,
+      0
+    );
+
     await order.save();
-    console.log("Order created successfully:", order);
+    console.log("Order created successfully!");
   } catch (error) {
     console.error("Error creating order for offers:", error);
   }
@@ -842,9 +863,22 @@ async function viewAllSalesOrders() {
     let totalValue = 0;
     orders.forEach((order) => {
       console.log(`Order Number: ${order._id}`);
-      console.log(`Date: ${order.date}`);
-      console.log(`Status: ${order.status}`);
+      console.log(); // Blank row
+      order.products.forEach((product, index) => {
+        console.log(`  ${index + 1}. Product Name: ${product.name}`);
+        console.log(`     Quantity: ${product.quantity}`);
+        console.log(`     Unit Price: $${product.price.toFixed(2)}`);
+      });
+      const formattedDate = order.date.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      console.log(); // Blank row
       console.log(`Total Cost: $${order.totalCost.toFixed(2)}`);
+      console.log(); // Blank row
+      console.log(`Order Date: ${formattedDate}`);
+      console.log(`Status: ${order.status}`);
       console.log("---------------------------");
       totalValue += order.totalCost;
     });
@@ -858,6 +892,139 @@ async function viewAllSalesOrders() {
     displayMenu();
   }
 }
+
+async function viewProfitFromSales() {
+  try {
+    // Fetch all orders from the database
+    const orders = await Order.find();
+    let totalValue = 0;
+    let totalNetValue = 0;
+        // Display the details of all sales orders
+    console.log("All Sales Orders:");
+    orders.forEach((order) => {
+      console.log(`Order number: ${order._id}`);
+      console.log(`Date: ${order.date}`);
+      console.log(`Status: ${order.status}`);
+      console.log(`Total cost value: $${order.totalNetCost.toFixed(2)}`);
+      console.log(`Total order value: $${order.totalCost.toFixed(2)}`);
+      console.log("---------------------------");
+      totalValue += order.totalCost;
+      totalNetValue += order.totalNetCost;
+    });
+    console.log(`All sales orders cost value: $${totalNetValue.toFixed(2)}`);
+    console.log(`All sales orders total value: $${totalValue.toFixed(2)}`);
+    console.log("---------------------------");
+
+    const totalProfitMargin = totalValue - totalNetValue;
+    console.log(`Total profit margin: $${totalProfitMargin.toFixed(2)}`);
+    console.log("---------------------------");
+
+    const offerOption = promptInput('Press "y" to view offers by product or press Enter to continue: ');
+
+    if (offerOption.toLowerCase() === 'y') {
+      // View offers by product
+      await viewOffersByProduct();
+    }
+  } catch (error) {
+    console.error("Error viewing all sales orders:", error);
+  } finally {
+    // Prompt the user to press Enter to continue
+    promptInput("Press Enter to continue to the main menu...");
+    // Return to the main menu
+    displayMenu();
+  }
+}
+
+async function viewOffersByProduct() {
+  try {
+    // Fetch all products from the database
+    const products = await Product.find();
+
+    // Display the products to the user
+    console.log("Products:");
+    products.forEach((product, index) => {
+      console.log(`${index + 1}. ${product.name}`);
+    });
+
+    // Ask the user to select a product
+    const productOption = promptInput("Select a product (enter number): ");
+
+    // Check if the entered option is valid
+    if (
+      parseInt(productOption) >= 1 &&
+      parseInt(productOption) <= products.length
+    ) {
+      const selectedProduct = products[parseInt(productOption) - 1];
+
+      // Use aggregation to find offers containing the selected product
+      const offers = await Offer.aggregate([
+        {
+          $lookup: {
+            from: "products",
+            localField: "products",
+            foreignField: "_id",
+            as: "products",
+          },
+        },
+        {
+          $match: {
+            "products._id": selectedProduct._id,
+          },
+        },
+        {
+          $unwind: "$products",
+        },
+        {
+          $lookup: {
+            from: "suppliers",
+            localField: "products.supplier",
+            foreignField: "_id",
+            as: "products.supplier",
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            price: { $first: "$price" },
+            products: { $push: "$products" },
+            totalNetPrice: { $sum: "$products.cost" }, // Calculate total net price
+          },
+        },
+      ]);
+
+      if (offers.length > 0) {
+        // Display the offers containing the selected product
+        console.log(`Offers containing product "${selectedProduct.name}":`);
+        offers.forEach((offer) => {
+          console.log("Offer includes:");
+          console.log(); // Blank row
+          offer.products.forEach((product) => {
+            console.log("  - Name:", product.name);
+            console.log("  - Cost:", product.cost);
+            console.log("  - Sales price:", product.price);
+            console.log(); // Blank row
+          });
+          console.log("Offer ID: " + offer._id);
+          console.log("---------------------------");
+          console.log("Total Net Price: $" + offer.totalNetPrice.toFixed(2));
+          console.log("Price: $" + offer.price.toFixed(2));
+        });
+      } else {
+        console.log(`Product "${selectedProduct.name}" is not in any offerings.`);
+      }
+    } else {
+      console.log("Invalid selection.");
+    }
+
+    // Prompt the user to press Enter to continue
+    promptInput("Press Enter to continue to the main menu...");
+    // Return to the main menu
+    displayMenu();
+  } catch (error) {
+    console.error("Error viewing offers by product:", error);
+  }
+}
+
 
 // Initial function call to start the program
 displayMenu();
