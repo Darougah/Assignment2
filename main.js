@@ -15,10 +15,10 @@ const categorySchema = new mongoose.Schema({
 
 const Category = mongoose.model("Category", categorySchema);
 
-// Define Supplier schema and model
 const supplierSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  contact: { type: String }, // Change 'description' to 'contact'
+  contact: { type: String }, // Ensure contact field is defined
+  description: { type: String },
 });
 
 const Supplier = mongoose.model("Supplier", supplierSchema);
@@ -262,15 +262,15 @@ async function addNewCategory() {
   }
 }
 
-// Function to add a new supplier
 async function addNewSupplierForProduct() {
   console.log("Adding a new supplier:");
 
   const name = promptInput("Enter supplier name: ");
+  const contact = promptInput("Enter supplier contact: ");
   const description = promptInput("Enter supplier description: ");
 
   try {
-    const supplier = new Supplier({ name, description });
+    const supplier = new Supplier({ name, contact, description }); // Include contact in the Supplier creation
     await supplier.save();
     console.log("New supplier added successfully!");
   } catch (error) {
@@ -791,10 +791,11 @@ async function addNewSupplier() {
   try {
     // Prompt the user to enter supplier details
     const name = promptInput("Enter supplier name: ");
+    const contact = promptInput("Enter supplier contact: "); // Prompt for contact
     const description = promptInput("Enter supplier description: ");
 
     // Create a new supplier instance
-    const newSupplier = new Supplier({ name, description });
+    const newSupplier = new Supplier({ name, contact, description }); // Include contact
 
     // Save the new supplier to the database
     await newSupplier.save();
