@@ -179,21 +179,23 @@ const offersData = [
 const insertedOffers = await Offer.insertMany(offersData);
 
 // Sample sales order data
-const salesOrdersData = [
+const OrdersData = [
   {
-    offer: insertedOffers[0]._id,
-    quantity: 2,
-    status: "pending",
-  },
-  {
-    offer: insertedOffers[2]._id,
-    quantity: 1,
+    products: [
+      {
+        product: insertedProducts[0]._id,
+        quantity: 1,
+        details: "Label 2442", 
+        name: "Laptop", 
+        price: 1000, 
+      },
+    ],
     status: "pending",
   },
 ];
 
 // Insert sales orders data
-await Order.insertMany(salesOrdersData);
+await Order.insertMany(OrdersData);
 
 // Disconnect from MongoDB
 await mongoose.disconnect();
