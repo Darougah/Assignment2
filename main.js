@@ -43,6 +43,7 @@ const offerSchema = new mongoose.Schema({
   active: { type: Boolean, default: true },
   date: { type: Date, default: Date.now },
   totalCost: { type: Number, default: 0 },
+  totalNetCost: { type: Number, default: 0 },
 });
 
 const Offer = mongoose.model("Offer", offerSchema);
@@ -54,6 +55,7 @@ const orderSchema = new mongoose.Schema({
       product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
       name: String,
       price: Number,
+      cost: Number,
       quantity: Number,
       details: String,
     },
@@ -62,6 +64,7 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, default: "Pending" },
   date: { type: Date, default: Date.now },
   totalCost: { type: Number, default: 0 },
+  totalNetCost: { type: Number, default: 0 },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -131,7 +134,7 @@ function displayMenu() {
       viewAllSalesOrders();
       break;
     case "14":
-      console.log("You selected: View sum of all profits");
+      viewProfitFromSales();
       break;
     case "0":
       // Exit the program
@@ -618,6 +621,7 @@ async function createOrderForProducts() {
         details: promptInput(`Enter any details for ${products[index].name}: `),
         name: products[index].name, // Corrected: Access name property from each product
         price: products[index].price, // Corrected: Access price property from each product
+        cost: products[index].cost, // Corrected: Access cost property from each product
       })),
       status: "Pending",
     });
@@ -626,6 +630,14 @@ async function createOrderForProducts() {
       (total, product) => total + product.quantity * product.price,
       0
     );
+
+    order.totalNetCost = order.products.reduce(
+      (total, product) => total + product.quantity * product.cost,
+      0
+    );
+
+
+
 
     await order.save();
     console.log("Order created successfully:");
@@ -686,6 +698,11 @@ async function createOrderForOffers() {
 
     order.totalCost = order.products.reduce(
       (total, product) => total + product.quantity * product.price,
+      0
+    );
+
+    order.totalNetCost = order.products.reduce(
+      (total, product) => total + product.quantity * product.cost,
       0
     );
 
@@ -847,6 +864,37 @@ async function viewAllSalesOrders() {
       console.log("---------------------------");
       totalValue += order.totalCost;
     });
+    console.log(`All Sales Orders total value: $${totalValue.toFixed(2)}`);
+  } catch (error) {
+    console.error("Error viewing all sales orders:", error);
+  } finally {
+    // Prompt the user to press Enter to continue
+    promptInput("Press Enter to continue to the main menu...");
+    // Return to the main menu
+    displayMenu();
+  }
+}
+
+async function viewProfitFromSales() {
+  try {
+    // Fetch all orders from the database
+    const orders = await Order.find();
+
+    // Display the details of all sales orders
+    console.log("All Sales Orders:");
+    let totalValue = 0;
+    let totalNetValue = 0;
+    orders.forEach((order) => {
+      console.log(`Order Number: ${order._id}`);
+      console.log(`Date: ${order.date}`);
+      console.log(`Status: ${order.status}`);
+      console.log(`Total Order Cost Value: $${order.totalNetCost.toFixed(2)}`);
+      console.log(`Total Order Value: $${order.totalCost.toFixed(2)}`);
+      console.log("---------------------------");
+      totalValue += order.totalCost;
+      totalNetValue += order.totalNetCost;
+    });
+    console.log(`All Sales Orders Cost value: $${totalNetValue.toFixed(2)}`);
     console.log(`All Sales Orders total value: $${totalValue.toFixed(2)}`);
   } catch (error) {
     console.error("Error viewing all sales orders:", error);
