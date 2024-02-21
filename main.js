@@ -41,6 +41,8 @@ const offerSchema = new mongoose.Schema({
   name: String,
   price: { type: Number, required: true },
   active: { type: Boolean, default: true },
+  date: { type: Date, default: Date.now },
+  totalCost: { type: Number, default: 0 },
 });
 
 const Offer = mongoose.model("Offer", offerSchema);
@@ -58,6 +60,8 @@ const orderSchema = new mongoose.Schema({
   ],
   offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
   status: { type: String, default: "Pending" },
+  date: { type: Date, default: Date.now },
+  totalCost: { type: Number, default: 0 },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -124,7 +128,7 @@ function displayMenu() {
       viewSuppliers();
       break;
     case "13":
-      console.log("You selected: View all sales");
+      viewAllSalesOrders();
       break;
     case "14":
       console.log("You selected: View sum of all profits");
@@ -618,6 +622,11 @@ async function createOrderForProducts() {
       status: "Pending",
     });
 
+    order.totalCost = order.products.reduce(
+      (total, product) => total + product.quantity * product.price,
+      0
+    );
+
     await order.save();
     console.log("Order created successfully:");
   } catch (error) {
@@ -674,6 +683,11 @@ async function createOrderForOffers() {
       })),
       offer: selectedOffer._id,
     });
+
+    order.totalCost = order.products.reduce(
+      (total, product) => total + product.quantity * product.price,
+      0
+    );
 
     await order.save();
     console.log("Order created successfully:", order);
@@ -809,6 +823,33 @@ async function viewSuppliers() {
     });
   } catch (error) {
     console.error("Error viewing suppliers:", error);
+  } finally {
+    // Prompt the user to press Enter to continue
+    promptInput("Press Enter to continue to the main menu...");
+    // Return to the main menu
+    displayMenu();
+  }
+}
+
+async function viewAllSalesOrders() {
+  try {
+    // Fetch all orders from the database
+    const orders = await Order.find();
+
+    // Display the details of all sales orders
+    console.log("All Sales Orders:");
+    let totalValue = 0;
+    orders.forEach((order) => {
+      console.log(`Order Number: ${order._id}`);
+      console.log(`Date: ${order.date}`);
+      console.log(`Status: ${order.status}`);
+      console.log(`Total Cost: $${order.totalCost.toFixed(2)}`);
+      console.log("---------------------------");
+      totalValue += order.totalCost;
+    });
+    console.log(`All Sales Orders total value: $${totalValue.toFixed(2)}`);
+  } catch (error) {
+    console.error("Error viewing all sales orders:", error);
   } finally {
     // Prompt the user to press Enter to continue
     promptInput("Press Enter to continue to the main menu...");

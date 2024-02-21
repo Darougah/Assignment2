@@ -49,6 +49,8 @@ const orderSchema = new mongoose.Schema({
   ],
   offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
   status: { type: String, default: "Pending" },
+  date: { type: Date, default: Date.now },
+  totalCost: { type: Number, default: 0 },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -191,6 +193,7 @@ const OrdersData = [
       },
     ],
     status: "pending",
+    totalCost: 1000,
   },
 ];
 
