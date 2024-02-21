@@ -232,22 +232,25 @@ async function addNewProduct() {
   }
 }
 
-// Function to add a new category for a product
-async function addNewCategoryForProduct(supplier) {
-  console.log("Adding a new category:");
-
-  const name = promptInput("Enter category name: ");
-  const description = promptInput("Enter category description: ");
-
+// Function to add a new category
+async function addNewCategory() {
   try {
-    const category = new Category({ name, description });
-    await category.save();
-    console.log("New category added successfully!");
+    // Prompt the user to enter category details
+    const name = promptInput("Enter category name: ");
+    const description = promptInput("Enter category description: ");
 
-    // Return to adding a new product after adding the category
-    addNewProduct();
+    // Create a new category instance
+    const newCategory = new Category({ name, description });
+
+    // Save the new category to the database
+    await newCategory.save();
+
+    console.log("New category added successfully!");
   } catch (error) {
-    console.error("Error adding category:", error);
+    console.error("Error adding new category:", error);
+  } finally {
+    // Return to the main menu
+    displayMenu();
   }
 }
 
@@ -301,8 +304,8 @@ async function viewProductsByCategory() {
       console.log(`Products in category "${selectedCategory.name}":`);
       products.forEach((product) => {
         console.log("Name:", product.name);
-        console.log("Price:", product.price);
-        console.log("Cost:", product.cost);
+        console.log("Price: $" + product.price.toFixed(2));
+        console.log("Cost: $" + product.cost);
         console.log("Stock:", product.stock);
         console.log(
           "Supplier:",
@@ -354,7 +357,7 @@ async function viewProductsBySupplier() {
       console.log(`Products supplied by "${selectedSupplier.name}":`);
       products.forEach((product) => {
         console.log("Name:", product.name);
-        console.log("Price:", product.price);
+        console.log("Price: $" + product.price.toFixed(2));
         console.log("Cost:", product.cost);
         console.log("Stock:", product.stock);
         console.log("---------------------------");
@@ -372,7 +375,6 @@ async function viewProductsBySupplier() {
   }
 }
 
-// Function to view offers within a price range
 async function viewOffersWithinPriceRange() {
   try {
     // Ask the user to input the price range
@@ -385,28 +387,30 @@ async function viewOffersWithinPriceRange() {
       return;
     }
 
-    // Fetch products within the specified price range
-    const products = await Product.find({
+    // Fetch offers within the specified price range
+    const offers = await Offer.find({
       price: { $gte: minPrice, $lte: maxPrice },
-    })
-      .populate("category")
-      .populate("supplier");
+    }).populate({
+      path: "products",
+      populate: { path: "category supplier" },
+    });
 
     // Display the offers
     console.log(`Offers within the price range $${minPrice} - $${maxPrice}:`);
-    products.forEach((product) => {
-      console.log("Name:", product.name);
-      console.log(
-        "Category:",
-        product.category ? product.category.name : "N/A"
-      );
-      console.log("Price:", product.price);
-      console.log("Cost:", product.cost);
-      console.log("Stock:", product.stock);
-      console.log(
-        "Supplier:",
-        product.supplier ? product.supplier.name : "N/A"
-      );
+    offers.forEach((offer) => {
+      console.log("Price: $" + offer.price.toFixed(2));
+      console.log("Included Products:");
+      offer.products.forEach((product) => {
+        console.log("  - Name:", product.name);
+        console.log(
+          "    Category:",
+          product.category ? product.category.name : "N/A"
+        );
+        console.log(
+          "    Supplier:",
+          product.supplier ? product.supplier.name : "N/A"
+        );
+      });
       console.log("---------------------------");
     });
 
@@ -419,7 +423,6 @@ async function viewOffersWithinPriceRange() {
   }
 }
 
-// Function to view all offers that contain a product from a specific category
 async function viewOffersByCategory() {
   try {
     // Fetch all categories from the database
@@ -457,40 +460,42 @@ async function viewOffersByCategory() {
           },
         },
         {
-          $project: {
-            _id: 1,
-            price: 1,
-            products: {
-              $filter: {
-                input: "$products",
-                as: "product",
-                cond: { $eq: ["$$product.category", selectedCategory._id] },
-              },
-            },
+          $unwind: "$products",
+        },
+        {
+          $lookup: {
+            from: "suppliers",
+            localField: "products.supplier",
+            foreignField: "_id",
+            as: "products.supplier",
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            price: { $first: "$price" },
+            products: { $push: "$products" },
           },
         },
       ]);
 
-      if (offers.length === 0) {
-        console.log(
-          `No offers found that contain products from the category "${selectedCategory.name}".`
-        );
-      } else {
-        // Display the offers
-        console.log(
-          `Offers that contain products from the category "${selectedCategory.name}":`
-        );
-        offers.forEach((offer) => {
-          console.log("Offer ID:", offer._id);
-          console.log("Price:", offer.price);
-          console.log("Products:");
-          offer.products.forEach((product) => {
-            console.log("  - Name:", product.name);
-            console.log("    Category:", selectedCategory.name); // Since we're filtering by category, we can safely assume the category of each product
-          });
-          console.log("---------------------------");
+      // Display the offers
+      console.log(
+        `Offers containing products from category "${selectedCategory.name}":`
+      );
+      offers.forEach((offer) => {
+        console.log("Price: $" + offer.price.toFixed(2));
+        console.log("Included Products:");
+        offer.products.forEach((product) => {
+          console.log("  - Name:", product.name);
+          console.log("    Category:", selectedCategory.name);
+          console.log(
+            "    Supplier:",
+            product.supplier.length > 0 ? product.supplier[0].name : "N/A"
+          );
         });
-      }
+        console.log("---------------------------");
+      });
     } else {
       console.log("Invalid selection.");
     }
@@ -500,56 +505,68 @@ async function viewOffersByCategory() {
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error(
-      "Error viewing offers that contain products from a specific category:",
-      error
-    );
+    console.error("Error viewing offers by category:", error);
   }
 }
-
 // Function to view the number of offers based on the availability of their products in stock
 async function viewOffersByStockAvailability() {
   try {
-    // Fetch all offers from the database
-    const offers = await Offer.find().populate("products");
+    // Fetch offers with their associated products
+    const offers = await Offer.find().populate({
+      path: "products",
+      populate: { path: "category supplier" },
+    });
 
-    // Count the number of offers based on stock availability
-    const stockAvailability = {
-      low: 0,
-      medium: 0,
-      high: 0,
-    };
+    // Initialize variables to track different offer availability categories
+    let allProductsInStock = 0;
+    let someProductsInStock = 0;
+    let noProductsInStock = 0;
 
+    // Display the offers along with their products
+    console.log("Offers with associated products:");
     offers.forEach((offer) => {
-      const totalStock = offer.products.reduce(
-        (acc, product) => acc + product.stock,
-        0
-      );
+      console.log(`Price: $${offer.price.toFixed(2)}`);
+      console.log("Included Products:");
+      offer.products.forEach((product) => {
+        console.log("  - Name:", product.name);
+        console.log(
+          "    Category:",
+          product.category ? product.category.name : "N/A"
+        );
+        console.log(
+          "    Supplier:",
+          product.supplier ? product.supplier.name : "N/A"
+        );
+      });
+      console.log("---------------------------");
 
-      if (totalStock <= 10) {
-        stockAvailability.low++;
-      } else if (totalStock <= 50) {
-        stockAvailability.medium++;
+      // Check the availability of products in the offer
+      const availableProducts = offer.products.filter(
+        (product) => product.stock > 0
+      );
+      if (availableProducts.length === offer.products.length) {
+        allProductsInStock++;
+      } else if (availableProducts.length > 0) {
+        someProductsInStock++;
       } else {
-        stockAvailability.high++;
+        noProductsInStock++;
       }
     });
 
-    // Display the stock availability
-    console.log("Number of offers based on stock availability:");
-    console.log("Low (<= 10 units):", stockAvailability.low);
-    console.log("Medium (<= 50 units):", stockAvailability.medium);
-    console.log("High (> 50 units):", stockAvailability.high);
+    // Display the summary
+    console.log("Summary of offer availability based on product stock:");
+    console.log("------------------------------------------------------");
+    console.log(`Offers with all products in stock: ${allProductsInStock}`);
+    console.log(`Offers with some products in stock: ${someProductsInStock}`);
+    console.log(`Offers with no products in stock: ${noProductsInStock}`);
+    console.log("------------------------------------------------------");
 
     // Prompt the user to press Enter to continue
     promptInput("Press Enter to continue to the main menu...");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error(
-      "Error viewing the number of offers based on stock availability:",
-      error
-    );
+    console.error("Error viewing offers by stock availability:", error);
   }
 }
 
@@ -663,24 +680,27 @@ async function createOrderForOffers() {
 
 // Function to add a new supplier
 async function addNewSupplier() {
-  console.log("Adding a new supplier:");
-
-  const name = promptInput("Enter supplier name: ");
-  const description = promptInput("Enter supplier description: ");
-
   try {
-    const supplier = new Supplier({ name, description });
-    await supplier.save();
+    // Prompt the user to enter supplier details
+    const name = promptInput("Enter supplier name: ");
+    const description = promptInput("Enter supplier description: ");
+
+    // Create a new supplier instance
+    const newSupplier = new Supplier({ name, description });
+
+    // Save the new supplier to the database
+    await newSupplier.save();
+
     console.log("New supplier added successfully!");
   } catch (error) {
-    console.error("Error adding supplier:", error);
+    console.error("Error adding new supplier:", error);
   } finally {
     // Return to the main menu
     displayMenu();
   }
 }
 
-// Function to view existing suppliers
+// Function to view all suppliers
 async function viewSuppliers() {
   try {
     // Fetch all suppliers from the database
@@ -690,24 +710,18 @@ async function viewSuppliers() {
     console.log("Suppliers:");
     suppliers.forEach((supplier, index) => {
       console.log(`${index + 1}. ${supplier.name}`);
+      console.log("Description:", supplier.description);
+      console.log("---------------------------");
     });
   } catch (error) {
     console.error("Error viewing suppliers:", error);
+  } finally {
+    // Prompt the user to press Enter to continue
+    promptInput("Press Enter to continue to the main menu...");
+    // Return to the main menu
+    displayMenu();
   }
-
-  // Prompt the user to press Enter to continue
-  promptInput("Press Enter to continue to the main menu...");
-  // Return to the main menu
-  displayMenu();
 }
 
-// Function to start the application
-function startApp() {
-  console.log("Welcome to the Product Management System!");
-
-  // Display the main menu
-  displayMenu();
-}
-
-// Start the application
-startApp();
+// Initial function call to start the program
+displayMenu();
