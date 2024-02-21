@@ -43,12 +43,16 @@ const orderSchema = new mongoose.Schema({
       product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
       name: String,
       price: Number,
+      cost: Number,
       quantity: Number,
       details: String,
     },
   ],
   offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
   status: { type: String, default: "Pending" },
+  date: { type: Date, default: Date.now },
+  totalCost: { type: Number, default: 0 },
+  totalNetCost: { type: Number, default: 0 },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -184,13 +188,16 @@ const OrdersData = [
     products: [
       {
         product: insertedProducts[0]._id,
+        name: "Laptop", 
+        price: 1000,
+        cost: 800,
         quantity: 1,
         details: "Label 2442", 
-        name: "Laptop", 
-        price: 1000, 
       },
     ],
-    status: "pending",
+    status: "Pending",
+    totalCost: 1000,
+    totalNetCost: 800,
   },
 ];
 
