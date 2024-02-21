@@ -37,22 +37,18 @@ const offerSchema = new mongoose.Schema({
 });
 const Offer = mongoose.model("Offer", offerSchema);
 
-// Define Sales Order schema and model
-const salesOrderSchema = new mongoose.Schema({
-  offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer", required: true },
-  quantity: { type: Number, required: true },
-  status: { type: String, enum: ["pending", "shipped"], default: "pending" },
-});
-const SalesOrder = mongoose.model("SalesOrder", salesOrderSchema);
-
 const orderSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true,
-  },
-  quantity: { type: Number, required: true },
-  details: { type: String },
+  products: [
+    {
+      product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      name: String,
+      price: Number,
+      quantity: Number,
+      details: String,
+    },
+  ],
+  offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
+  status: { type: String, default: "Pending" },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -197,7 +193,7 @@ const salesOrdersData = [
 ];
 
 // Insert sales orders data
-await SalesOrder.insertMany(salesOrdersData);
+await Order.insertMany(salesOrdersData);
 
 // Disconnect from MongoDB
 await mongoose.disconnect();
