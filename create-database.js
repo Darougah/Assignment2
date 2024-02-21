@@ -37,22 +37,18 @@ const offerSchema = new mongoose.Schema({
 });
 const Offer = mongoose.model("Offer", offerSchema);
 
-// Define Sales Order schema and model
-const salesOrderSchema = new mongoose.Schema({
-  offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer", required: true },
-  quantity: { type: Number, required: true },
-  status: { type: String, enum: ["pending", "shipped"], default: "pending" },
-});
-const SalesOrder = mongoose.model("SalesOrder", salesOrderSchema);
-
 const orderSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true,
-  },
-  quantity: { type: Number, required: true },
-  details: { type: String },
+  products: [
+    {
+      product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      name: String,
+      price: Number,
+      quantity: Number,
+      details: String,
+    },
+  ],
+  offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
+  status: { type: String, default: "Pending" },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -183,21 +179,23 @@ const offersData = [
 const insertedOffers = await Offer.insertMany(offersData);
 
 // Sample sales order data
-const salesOrdersData = [
+const OrdersData = [
   {
-    offer: insertedOffers[0]._id,
-    quantity: 2,
-    status: "pending",
-  },
-  {
-    offer: insertedOffers[2]._id,
-    quantity: 1,
+    products: [
+      {
+        product: insertedProducts[0]._id,
+        quantity: 1,
+        details: "Label 2442", 
+        name: "Laptop", 
+        price: 1000, 
+      },
+    ],
     status: "pending",
   },
 ];
 
 // Insert sales orders data
-await SalesOrder.insertMany(salesOrdersData);
+await Order.insertMany(OrdersData);
 
 // Disconnect from MongoDB
 await mongoose.disconnect();
