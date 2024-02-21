@@ -995,14 +995,15 @@ async function viewOffersByProduct() {
         // Display the offers containing the selected product
         console.log(`Offers containing product "${selectedProduct.name}":`);
         offers.forEach((offer) => {
-          console.log("Included Products:");
-          console.log("Offer ID: " + offer._id);
+          console.log("Offer includes:");
+          console.log(); // Blank row
           offer.products.forEach((product) => {
             console.log("  - Name:", product.name);
             console.log("  - Cost:", product.cost);
             console.log("  - Sales price:", product.price);
             console.log(); // Blank row
           });
+          console.log("Offer ID: " + offer._id);
           console.log("---------------------------");
           console.log("Total Net Price: $" + offer.totalNetPrice.toFixed(2));
           console.log("Price: $" + offer.price.toFixed(2));
