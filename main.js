@@ -667,7 +667,7 @@ async function createOrderForOffers() {
       });
     });
 
-    
+
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
       promptInput("Select an offer for the order (enter index): ")
@@ -899,11 +899,16 @@ async function viewProfitFromSales() {
     const orders = await Order.find();
     let totalValue = 0;
     let totalNetValue = 0;
-        // Display the details of all sales orders
+    // Display the details of all sales orders
     console.log("All Sales Orders:");
     orders.forEach((order) => {
       console.log(`Order number: ${order._id}`);
-      console.log(`Date: ${order.date}`);
+      const formattedDate = order.date.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      console.log(`Order Date: ${formattedDate}`);
       console.log(`Status: ${order.status}`);
       console.log(`Total cost value: $${order.totalNetCost.toFixed(2)}`);
       console.log(`Total order value: $${order.totalCost.toFixed(2)}`);
