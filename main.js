@@ -18,7 +18,7 @@ const Category = mongoose.model("Category", categorySchema);
 // Define Supplier schema and model
 const supplierSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  contact: { type: String }, // Change 'description' to 'contact'
+  description: { type: String },
 });
 
 const Supplier = mongoose.model("Supplier", supplierSchema);
@@ -50,11 +50,14 @@ const orderSchema = new mongoose.Schema({
   products: [
     {
       product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      name: String,
+      price: Number,
       quantity: Number,
       details: String,
     },
   ],
   offer: { type: mongoose.Schema.Types.ObjectId, ref: "Offer" },
+  status: { type: String, default: "Pending" },
 });
 
 const Order = mongoose.model("Order", orderSchema);
@@ -112,7 +115,7 @@ function displayMenu() {
       createOrderForOffers();
       break;
     case "10":
-      console.log("You selected: Ship orders");
+      viewOrdersForShipment();
       break;
     case "11":
       addNewSupplier();
@@ -609,11 +612,14 @@ async function createOrderForProducts() {
           promptInput(`Enter quantity for ${products[index].name}: `)
         ),
         details: promptInput(`Enter any details for ${products[index].name}: `),
+        name: products[index].name, // Corrected: Access name property from each product
+        price: products[index].price, // Corrected: Access price property from each product
       })),
+      status: "Pending",
     });
 
     await order.save();
-    console.log("Order created successfully:", order);
+    console.log("Order created successfully:");
   } catch (error) {
     console.error("Error creating order for products:", error);
   }
@@ -680,6 +686,91 @@ async function createOrderForOffers() {
   // Return to the main menu
   displayMenu();
 }
+async function shipOrder(orderId) {
+  try {
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      console.log("Order not found.");
+      return;
+    }
+
+    if (order.status === "Shipped") {
+      console.log("Order is already shipped.");
+      return;
+    }
+
+    // Confirm the shipment
+    const confirmation = promptInput(
+      `Do you wish to ship order ${orderId}? (yes/no): `
+    );
+
+    if (confirmation.toLowerCase() === "yes") {
+      order.status = "Shipped";
+      await order.save();
+
+      // Update product stock for each product in the order
+      for (const orderProduct of order.products) {
+        const productId = orderProduct.product._id;
+        const product = await Product.findById(productId);
+
+        // Subtract the quantity of the product in the order from the database
+        if (product) {
+          product.stock -= orderProduct.quantity;
+          await product.save();
+        }
+      }
+      console.log(`Order ${orderId} has been shipped.`);
+    } else {
+      console.log("Shipment canceled.");
+    }
+  } catch (error) {
+    console.error("Error shipping order:", error);
+  }
+}
+
+async function viewOrdersForShipment() {
+  try {
+    // Fetch all orders from the database
+    const orders = await Order.find();
+
+    // Display the orders with sequential numbers to the user
+    console.log("Orders available for shipment:");
+    orders.forEach((order, index) => {
+      console.log(
+        `${index + 1}. Order ID: ${order._id} - Status: ${order.status}`
+      );
+    });
+
+    // Ask the user to select an order for shipment
+    const selectedOrderIndex =
+      parseInt(promptInput("Select an order for shipment (enter number): ")) -
+      1;
+
+    // Validate the selected order index
+    if (
+      isNaN(selectedOrderIndex) ||
+      selectedOrderIndex < 0 ||
+      selectedOrderIndex >= orders.length
+    ) {
+      console.log("Invalid order selection.");
+      return;
+    }
+
+    // Get the selected order by its index
+    const selectedOrder = orders[selectedOrderIndex];
+
+    // Call the shipOrder function to change the status to "Shipped"
+    await shipOrder(selectedOrder._id);
+  } catch (error) {
+    console.error("Error viewing orders for shipment:", error);
+  }
+
+  // Prompt the user to press Enter to continue
+  promptInput("Press Enter to continue to the main menu...");
+  // Return to the main menu
+  displayMenu();
+}
 
 // Function to add a new supplier
 async function addNewSupplier() {
@@ -713,7 +804,7 @@ async function viewSuppliers() {
     console.log("Suppliers:");
     suppliers.forEach((supplier, index) => {
       console.log(`${index + 1}. ${supplier.name}`);
-      console.log("Contact:", supplier.contact);
+      console.log("Description:", supplier.description);
       console.log("---------------------------");
     });
   } catch (error) {
