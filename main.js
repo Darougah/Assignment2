@@ -690,6 +690,7 @@ async function createOrderForOffers() {
         product: product._id,
         name: product.name,
         price: product.price,
+        cost: product.cost,
         quantity: 1,
         details: "",
       })),
@@ -888,7 +889,7 @@ async function viewProfitFromSales() {
       console.log(`Order Number: ${order._id}`);
       console.log(`Date: ${order.date}`);
       console.log(`Status: ${order.status}`);
-      console.log(`Total Order Cost Value: $${order.totalNetCost.toFixed(2)}`);
+      console.log(`Total Cost Value: $${order.totalNetCost.toFixed(2)}`);
       console.log(`Total Order Value: $${order.totalCost.toFixed(2)}`);
       console.log("---------------------------");
       totalValue += order.totalCost;
