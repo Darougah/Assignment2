@@ -71,27 +71,31 @@ const Order = mongoose.model("Order", orderSchema);
 
 // Function to display menu and handle user input
 function displayMenu() {
-  console.log("1. Add new category");
-  console.log("2. Add new product");
-  console.log("3. View products by category");
-  console.log("4. View products by supplier");
-  console.log("5. View all offers within a price range");
-  console.log(
-    "6. View all offers that contain a product from a specific category"
-  );
-  console.log(
-    "7. View the number of offers based on the availability of their products in stock"
-  );
-  console.log("8. Create order for products");
-  console.log("9. Create order for offers");
-  console.log("10. Ship orders");
-  console.log("11. Add a new supplier");
-  console.log("12. View suppliers");
-  console.log("13. View all sales orders");
-  console.log("14. View sum of all profits");
-  console.log("0. Exit");
+  console.log("\x1b[36m\n=== Welcome! ===\n\x1b[0m");
 
-  const option = promptInput("Select an option: ");
+  // Menu options
+  console.log("\x1b[33mMenu:\x1b[0m");
+  console.log("\x1b[33m1.\x1b[0m Add new category");
+  console.log("\x1b[33m2.\x1b[0m Add new product");
+  console.log("\x1b[33m3.\x1b[0m View products by category");
+  console.log("\x1b[33m4.\x1b[0m View products by supplier");
+  console.log("\x1b[33m5.\x1b[0m View all offers within a price range");
+  console.log(
+    "\x1b[33m6.\x1b[0m View all offers that contain a product from a specific category"
+  );
+  console.log(
+    "\x1b[33m7.\x1b[0m View the number of offers based on the availability of their products in stock"
+  );
+  console.log("\x1b[33m8.\x1b[0m Create order for products");
+  console.log("\x1b[33m9.\x1b[0m Create order for offers");
+  console.log("\x1b[33m10.\x1b[0m Ship orders");
+  console.log("\x1b[33m11.\x1b[0m Add a new supplier");
+  console.log("\x1b[33m12.\x1b[0m View suppliers");
+  console.log("\x1b[33m13.\x1b[0m View all sales orders");
+  console.log("\x1b[33m14.\x1b[0m View sum of all profits");
+  console.log("\x1b[33m0.\x1b[0m Exit\n");
+
+  const option = promptInput("\x1b[35mSelect an option: \x1b[0m");
 
   switch (option) {
     case "1":
@@ -142,7 +146,9 @@ function displayMenu() {
       mongoose.connection.close();
       break;
     default:
-      console.log("Invalid option. Please select a valid option.");
+      console.log(
+        "\x1b[31mInvalid option. Please select a valid option.\x1b[0m"
+      );
       break;
   }
 }
@@ -159,27 +165,27 @@ async function createProduct(name, category, price, cost, stock, supplier) {
       supplier,
     });
     await product.save();
-    console.log("Product created successfully:", product);
+    console.log("\x1b[32mProduct created successfully:\x1b[0m");
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("\x1b[31mError creating product:", error, "\x1b[0m");
     throw error; // Rethrow the error for handling in the calling function
   }
 }
 
 async function addNewProduct() {
   // Display prompt for product details
-  console.log("Adding a new product:");
+  console.log("\x1b[36mAdding a new product:\x1b[0m");
 
   // Display existing suppliers
   const suppliers = await Supplier.find();
-  console.log("Existing Suppliers:");
+  console.log("\x1b[36mExisting Suppliers:\x1b[0m");
   suppliers.forEach((supplier, index) => {
-    console.log(`${index + 1}. ${supplier.name}`);
+    console.log(`\x1b[33m${index + 1}.\x1b[0m ${supplier.name}`);
   });
 
   // Ask user to select a supplier or add a new one
   const supplierOption = promptInput(
-    "Select a supplier from the list (enter number) or add a new one (type 'new'): "
+    "\x1b[31mSelect a supplier from the list (enter number) or add a new one (type 'new'):\x1b[0m "
   );
 
   if (supplierOption === "new") {
@@ -192,14 +198,14 @@ async function addNewProduct() {
 
     // Fetch existing categories
     const categories = await Category.find();
-    console.log("Existing Categories:");
+    console.log("\x1b[36mExisting Categories:\x1b[0m");
     categories.forEach((category, index) => {
-      console.log(`${index + 1}. ${category.name}`);
+      console.log(`\x1b[33m${index + 1}\x1b[0m. ${category.name}`);
     });
 
     // Ask user to select a category or add a new one
     const categoryOption = promptInput(
-      "Select a category from the list (enter number) or add a new one (type 'new'): "
+      "\x1b[31mSelect a category from the list (enter number) or add a new one (type 'new'):\x1b[0m "
     );
 
     if (categoryOption === "new") {
@@ -211,10 +217,16 @@ async function addNewProduct() {
       const selectedCategory = categories[parseInt(categoryOption) - 1];
 
       // Ask for product details
-      const name = promptInput("Enter product name: ");
-      const price = parseFloat(promptInput("Enter product price: "));
-      const cost = parseFloat(promptInput("Enter product cost: "));
-      const stock = parseInt(promptInput("Enter product stock: "));
+      const name = promptInput("\x1b[34mEnter product name:\x1b[0m ");
+      const price = parseFloat(
+        promptInput("\x1b[34mEnter product price:\x1b[0m ")
+      );
+      const cost = parseFloat(
+        promptInput("\x1b[34mEnter product cost:\x1b[0m ")
+      );
+      const stock = parseInt(
+        promptInput("\x1b[34mEnter product stock:\x1b[0m ")
+      );
 
       try {
         // Create the new product
@@ -226,19 +238,19 @@ async function addNewProduct() {
           stock,
           selectedSupplier._id
         );
-        console.log("Product added successfully!");
+        console.log("\x1b[32mProduct added successfully!\x1b[0m");
       } catch (error) {
-        console.error("Error adding product:", error);
+        console.error("\x1b[31mError adding product:", error, "\x1b[0m");
       } finally {
         // Return to the main menu
         displayMenu();
       }
     } else {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
       displayMenu();
     }
   } else {
-    console.log("Invalid selection.");
+    console.log("\x1b[31mInvalid selection.\x1b[0m");
     displayMenu();
   }
 }
@@ -247,8 +259,10 @@ async function addNewProduct() {
 async function addNewCategory() {
   try {
     // Prompt the user to enter category details
-    const name = promptInput("Enter category name: ");
-    const description = promptInput("Enter category description: ");
+    const name = promptInput("\x1b[34mEnter category name:\x1b[0m ");
+    const description = promptInput(
+      "\x1b[34mEnter category description:\x1b[0m "
+    );
 
     // Create a new category instance
     const newCategory = new Category({ name, description });
@@ -256,9 +270,9 @@ async function addNewCategory() {
     // Save the new category to the database
     await newCategory.save();
 
-    console.log("New category added successfully!");
+    console.log("\x1b[32mNew category added successfully!\x1b[0m");
   } catch (error) {
-    console.error("Error adding new category:", error);
+    console.error("\x1b[31mError adding new category:", error, "\x1b[0m");
   } finally {
     // Return to the main menu
     displayMenu();
@@ -266,18 +280,20 @@ async function addNewCategory() {
 }
 
 async function addNewSupplierForProduct() {
-  console.log("Adding a new supplier:");
+  console.log("\x1b[36mAdding a new supplier:\x1b[0m");
 
-  const name = promptInput("Enter supplier name: ");
-  const contact = promptInput("Enter supplier contact: ");
-  const description = promptInput("Enter supplier description: ");
+  const name = promptInput("\x1b[34mEnter supplier name:\x1b[0m ");
+  const contact = promptInput("\x1b[34mEnter supplier contact:\x1b[0m ");
+  const description = promptInput(
+    "\x1b[34mEnter supplier description:\x1b[0m "
+  );
 
   try {
     const supplier = new Supplier({ name, contact, description }); // Include contact in the Supplier creation
     await supplier.save();
-    console.log("New supplier added successfully!");
+    console.log("\x1b[32mNew supplier added successfully!\x1b[0m");
   } catch (error) {
-    console.error("Error adding supplier:", error);
+    console.error("\x1b[31mError adding supplier:", error, "\x1b[0m");
   } finally {
     // Return to adding a new product after adding the supplier
     addNewProduct();
@@ -291,13 +307,15 @@ async function viewProductsByCategory() {
     const categories = await Category.find();
 
     // Display the categories to the user
-    console.log("Categories:");
+    console.log("\x1b[36mCategories:\x1b[0m");
     categories.forEach((category, index) => {
-      console.log(`${index + 1}. ${category.name}`);
+      console.log(`\x1b[33m${index + 1}\x1b[0m. ${category.name}`);
     });
 
     // Ask the user to select a category
-    const categoryOption = promptInput("Select a category (enter number): ");
+    const categoryOption = promptInput(
+      "\x1b[31mSelect a category (enter number):\x1b[0m "
+    );
 
     // Check if the entered option is valid
     if (
@@ -312,28 +330,34 @@ async function viewProductsByCategory() {
       }).populate("supplier");
 
       // Display the products
-      console.log(`Products in category "${selectedCategory.name}":`);
+      console.log(
+        `\x1b[33mProducts in category "${selectedCategory.name}":\x1b[0m`
+      );
       products.forEach((product) => {
-        console.log("Name:", product.name);
-        console.log("Price: $" + product.price.toFixed(2));
-        console.log("Cost: $" + product.cost);
-        console.log("Stock:", product.stock);
+        console.log("\x1b[36mName:\x1b[0m", product.name);
+        console.log("\x1b[36mPrice:\x1b[0m $" + product.price.toFixed(2));
+        console.log("\x1b[36mCost:\x1b[0m $" + product.cost);
+        console.log("\x1b[36mStock:\x1b[0m", product.stock);
         console.log(
-          "Supplier:",
+          "\x1b[36mSupplier:\x1b[0m",
           product.supplier ? product.supplier.name : "N/A"
         );
         console.log("---------------------------");
       });
     } else {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
     }
 
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error("Error viewing products by category:", error);
+    console.error(
+      "\x1b[31mError viewing products by category:",
+      error,
+      "\x1b[0m"
+    );
   }
 }
 
@@ -344,13 +368,15 @@ async function viewProductsBySupplier() {
     const suppliers = await Supplier.find();
 
     // Display the suppliers to the user
-    console.log("Suppliers:");
+    console.log("\x1b[36mSuppliers:\x1b[0m");
     suppliers.forEach((supplier, index) => {
-      console.log(`${index + 1}. ${supplier.name}`);
+      console.log(`\x1b[33m${index + 1}. \x1b[0m${supplier.name}`);
     });
 
     // Ask the user to select a supplier
-    const supplierOption = promptInput("Select a supplier (enter number): ");
+    const supplierOption = promptInput(
+      "\x1b[31mSelect a supplier (enter number):\x1b[0m "
+    );
 
     // Check if the entered option is valid
     if (
@@ -365,35 +391,45 @@ async function viewProductsBySupplier() {
       }).populate("category");
 
       // Display the products
-      console.log(`Products supplied by "${selectedSupplier.name}":`);
+      console.log(
+        `\x1b[33mProducts supplied by "${selectedSupplier.name}":\x1b[0m`
+      );
       products.forEach((product) => {
-        console.log("Name:", product.name);
-        console.log("Price: $" + product.price.toFixed(2));
-        console.log("Cost:", product.cost);
-        console.log("Stock:", product.stock);
-        console.log("---------------------------");
+        console.log("\x1b[36mName:\x1b[0m", product.name);
+        console.log("\x1b[36mPrice:\x1b[0m $" + product.price.toFixed(2));
+        console.log("\x1b[36mCost:\x1b[0m", product.cost);
+        console.log("\x1b[36mStock:\x1b[0m", product.stock);
+        console.log("\x1b[36m---------------------------\x1b[0m");
       });
     } else {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
     }
 
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error("Error viewing products by supplier:", error);
+    console.error(
+      "\x1b[31mError viewing products by supplier:",
+      error,
+      "\x1b[0m"
+    );
   }
 }
 
 async function viewOffersWithinPriceRange() {
   try {
     // Ask the user to input the price range
-    const minPrice = parseFloat(promptInput("Enter the minimum price: "));
-    const maxPrice = parseFloat(promptInput("Enter the maximum price: "));
+    const minPrice = parseFloat(
+      promptInput("\x1b[36mEnter the minimum price:\x1b[0m ")
+    );
+    const maxPrice = parseFloat(
+      promptInput("\x1b[36mEnter the maximum price:\x1b[0m ")
+    );
 
     if (isNaN(minPrice) || isNaN(maxPrice)) {
-      console.log("Invalid input. Please enter valid prices.");
+      console.log("\x1b[31mInvalid input. Please enter valid prices.\x1b[0m");
       displayMenu();
       return;
     }
@@ -407,30 +443,36 @@ async function viewOffersWithinPriceRange() {
     });
 
     // Display the offers
-    console.log(`Offers within the price range $${minPrice} - $${maxPrice}:`);
+    console.log(
+      `\x1b[33mOffers within the price range $${minPrice} - $${maxPrice}:\x1b[0m`
+    );
     offers.forEach((offer) => {
-      console.log("Price: $" + offer.price.toFixed(2));
-      console.log("Included Products:");
+      console.log("\x1b[36mPrice: $" + offer.price.toFixed(2) + "\x1b[0m");
+      console.log("\x1b[36mIncluded Products:\x1b[0m");
       offer.products.forEach((product) => {
-        console.log("  - Name:", product.name);
+        console.log("\x1b[36m  - Name:\x1b[0m", product.name);
         console.log(
-          "    Category:",
+          "\x1b[36m    Category:\x1b[0m",
           product.category ? product.category.name : "N/A"
         );
         console.log(
-          "    Supplier:",
+          "\x1b[36m    Supplier:\x1b[0m",
           product.supplier ? product.supplier.name : "N/A"
         );
       });
-      console.log("---------------------------");
+      console.log("\x1b[36m---------------------------\x1b[0m");
     });
 
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error("Error viewing offers within the price range:", error);
+    console.error(
+      "\x1b[31mError viewing offers within the price range:",
+      error,
+      "\x1b[0m"
+    );
   }
 }
 
@@ -440,13 +482,15 @@ async function viewOffersByCategory() {
     const categories = await Category.find();
 
     // Display the categories to the user
-    console.log("Categories:");
+    console.log("\x1b[36mCategories:\x1b[0m");
     categories.forEach((category, index) => {
-      console.log(`${index + 1}. ${category.name}`);
+      console.log(`\x1b[33m${index + 1}. \x1b[0m${category.name}`);
     });
 
     // Ask the user to select a category
-    const categoryOption = promptInput("Select a category (enter number): ");
+    const categoryOption = promptInput(
+      "\x1b[31mSelect a category (enter number):\x1b[0m "
+    );
 
     // Check if the entered option is valid
     if (
@@ -492,31 +536,37 @@ async function viewOffersByCategory() {
 
       // Display the offers
       console.log(
-        `Offers containing products from category "${selectedCategory.name}":`
+        '\x1b[33mOffers containing products from category "' +
+          selectedCategory.name +
+          '":\x1b[0m'
       );
       offers.forEach((offer) => {
-        console.log("Price: $" + offer.price.toFixed(2));
-        console.log("Included Products:");
+        console.log("\x1b[36mPrice: $" + offer.price.toFixed(2) + "\x1b[0m");
+        console.log("\x1b[36mIncluded Products:\x1b[0m");
         offer.products.forEach((product) => {
-          console.log("  - Name:", product.name);
-          console.log("    Category:", selectedCategory.name);
+          console.log("\x1b[36m  - Name:\x1b[0m", product.name);
+          console.log("\x1b[36m    Category:\x1b[0m", selectedCategory.name);
           console.log(
-            "    Supplier:",
+            "\x1b[36m    Supplier:\x1b[0m",
             product.supplier.length > 0 ? product.supplier[0].name : "N/A"
           );
         });
-        console.log("---------------------------");
+        console.log("\x1b[36m---------------------------\x1b[0m");
       });
     } else {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
     }
 
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error("Error viewing offers by category:", error);
+    console.error(
+      "\x1b[31mError viewing offers by category:",
+      error,
+      "\x1b[0m"
+    );
   }
 }
 // Function to view the number of offers based on the availability of their products in stock
@@ -534,22 +584,22 @@ async function viewOffersByStockAvailability() {
     let noProductsInStock = 0;
 
     // Display the offers along with their products
-    console.log("Offers with associated products:");
+    console.log("\x1b[33mOffers with associated products:\x1b[0m");
     offers.forEach((offer) => {
-      console.log(`Price: $${offer.price.toFixed(2)}`);
-      console.log("Included Products:");
+      console.log(`\x1b[36mPrice: $${offer.price.toFixed(2)}\x1b[0m`);
+      console.log("\x1b[36mIncluded Products:\x1b[0m");
       offer.products.forEach((product) => {
-        console.log("  - Name:", product.name);
+        console.log("\x1b[36m  - Name:\x1b[0m", product.name);
         console.log(
-          "    Category:",
+          "\x1b[36m    Category:\x1b[0m",
           product.category ? product.category.name : "N/A"
         );
         console.log(
-          "    Supplier:",
+          "\x1b[36m    Supplier:\x1b[0m",
           product.supplier ? product.supplier.name : "N/A"
         );
       });
-      console.log("---------------------------");
+      console.log("\x1b[36m---------------------------\x1b[0m");
 
       // Check the availability of products in the offer
       const availableProducts = offer.products.filter(
@@ -565,19 +615,35 @@ async function viewOffersByStockAvailability() {
     });
 
     // Display the summary
-    console.log("Summary of offer availability based on product stock:");
-    console.log("------------------------------------------------------");
-    console.log(`Offers with all products in stock: ${allProductsInStock}`);
-    console.log(`Offers with some products in stock: ${someProductsInStock}`);
-    console.log(`Offers with no products in stock: ${noProductsInStock}`);
-    console.log("------------------------------------------------------");
+    console.log(
+      "\x1b[35mSummary of offer availability based on product stock:\x1b[0m"
+    );
+    console.log(
+      "\x1b[36m------------------------------------------------------\x1b[0m"
+    );
+    console.log(
+      `\x1b[33mOffers with all products in stock: ${allProductsInStock}\x1b[0m`
+    );
+    console.log(
+      `\x1b[33mOffers with some products in stock: ${someProductsInStock}\x1b[0m`
+    );
+    console.log(
+      `\x1b[33mOffers with no products in stock: ${noProductsInStock}\x1b[0m`
+    );
+    console.log(
+      "\x1b[36m------------------------------------------------------\x1b[0m"
+    );
 
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error("Error viewing offers by stock availability:", error);
+    console.error(
+      "\x1b[31mError viewing offers by stock availability:",
+      error,
+      "\x1b[0m"
+    );
   }
 }
 
@@ -588,14 +654,16 @@ async function createOrderForProducts() {
     const products = await Product.find();
 
     // Display the products to the user
-    console.log("Available Products:");
+    console.log("\x1b[36mAvailable Products:\x1b[0m");
     products.forEach((product, index) => {
-      console.log(`${index + 1}. ${product.name} - Stock: ${product.stock}`);
+      console.log(
+        `\x1b[33m${index + 1}. \x1b[0m${product.name} - Stock: ${product.stock}`
+      );
     });
 
     // Ask the user to select products for the order
     const selectedProductIndices = promptInput(
-      "Select products for the order (enter indices separated by comma): "
+      "\x1b[90mSelect products for the order (enter indices separated by comma): \x1b[0m"
     )
       .split(",")
       .map((index) => parseInt(index.trim()) - 1);
@@ -606,7 +674,7 @@ async function createOrderForProducts() {
         (index) => isNaN(index) || index < 0 || index >= products.length
       )
     ) {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
       displayMenu();
       return;
     }
@@ -636,17 +704,18 @@ async function createOrderForProducts() {
       0
     );
 
-
-
-
     await order.save();
-    console.log("Order created successfully:");
+    console.log("\x1b[32mOrder created successfully:\x1b[0m");
   } catch (error) {
-    console.error("Error creating order for products:", error);
+    console.error(
+      "\x1b[31mError creating order for products:",
+      error,
+      "\x1b[0m"
+    );
   }
 
   // Prompt the user to press Enter to continue
-  promptInput("Press Enter to continue to the main menu...");
+  promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
   // Return to the main menu
   displayMenu();
 }
@@ -657,20 +726,19 @@ async function createOrderForOffers() {
     const offers = await Offer.find().populate("products");
 
     // Display the offers to the user
-    console.log("Available Offers:");
+    console.log("\x1b[33mAvailable Offers:\x1b[0m");
     offers.forEach((offer, index) => {
-      console.log(`${index + 1}. Offer ID: ${offer._id}`);
-      console.log("   Price:", offer.price);
-      console.log("   Products:");
+      console.log(`\x1b[36m${index + 1}. Offer ID: ${offer._id}\x1b[0m`);
+      console.log("\x1b[36m   Price:\x1b[0m", offer.price);
+      console.log("\x1b[36m   Products:\x1b[0m");
       offer.products.forEach((product) => {
-        console.log("     -", product.name);
+        console.log("\x1b[36m     -\x1b[0m", product.name);
       });
     });
 
-
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
-      promptInput("Select an offer for the order (enter index): ")
+      promptInput("\x1b[33mSelect an offer for the order (enter index):\x1b[0m")
     );
 
     // Validate the selected offer index
@@ -679,7 +747,7 @@ async function createOrderForOffers() {
       selectedOfferIndex < 1 ||
       selectedOfferIndex > offers.length
     ) {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
       displayMenu();
       return;
     }
@@ -711,13 +779,13 @@ async function createOrderForOffers() {
     );
 
     await order.save();
-    console.log("Order created successfully!");
+    console.log("\x1b[32mOrder created successfully:\x1b[0m");
   } catch (error) {
-    console.error("Error creating order for offers:", error);
+    console.error("\x1b[31mError creating order for offers:", error, "\x1b[0m");
   }
 
   // Prompt the user to press Enter to continue
-  promptInput("Press Enter to continue to the main menu...");
+  promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
   // Return to the main menu
   displayMenu();
 }
@@ -726,20 +794,19 @@ async function shipOrder(orderId) {
     const order = await Order.findById(orderId);
 
     if (!order) {
-      console.log("Order not found.");
+      console.log("\x1b[31mOrder not found.\x1b[0m");
       return;
     }
 
     if (order.status === "Shipped") {
-      console.log("Order is already shipped.");
+      console.log("\x1b[32mOrder is already shipped.\x1b[0m");
       return;
     }
 
     // Confirm the shipment
     const confirmation = promptInput(
-      `Do you wish to ship order ${orderId}? (yes/no): `
+      "\x1b[35mDo you wish to ship order ${orderId}? (yes/no):\x1b[0m "
     );
-
     if (confirmation.toLowerCase() === "yes") {
       order.status = "Shipped";
       await order.save();
@@ -755,12 +822,12 @@ async function shipOrder(orderId) {
           await product.save();
         }
       }
-      console.log(`Order ${orderId} has been shipped.`);
+      console.log("\x1b[32mOrder " + orderId + " has been shipped.\x1b[0m");
     } else {
-      console.log("Shipment canceled.");
+      console.log("\x1b[31mShipment canceled.\x1b[0m");
     }
   } catch (error) {
-    console.error("Error shipping order:", error);
+    console.error("\x1b[31mError shipping order:", error, "\x1b[0m");
   }
 }
 
@@ -770,17 +837,22 @@ async function viewOrdersForShipment() {
     const orders = await Order.find();
 
     // Display the orders with sequential numbers to the user
-    console.log("Orders available for shipment:");
+    console.log("\x1b[36mOrders available for shipment:\x1b[0m");
     orders.forEach((order, index) => {
       console.log(
-        `${index + 1}. Order ID: ${order._id} - Status: ${order.status}`
+        `\x1b[33m${index + 1}. Order ID: ${order._id} - Status: ${
+          order.status
+        }\x1b[0m`
       );
     });
 
     // Ask the user to select an order for shipment
     const selectedOrderIndex =
-      parseInt(promptInput("Select an order for shipment (enter number): ")) -
-      1;
+      parseInt(
+        promptInput(
+          "\x1b[33mSelect an order for shipment (enter number):\x1b[0m "
+        )
+      ) - 1;
 
     // Validate the selected order index
     if (
@@ -788,7 +860,7 @@ async function viewOrdersForShipment() {
       selectedOrderIndex < 0 ||
       selectedOrderIndex >= orders.length
     ) {
-      console.log("Invalid order selection.");
+      console.log("\x1b[31mInvalid order selection.\x1b[0m");
       return;
     }
 
@@ -798,11 +870,15 @@ async function viewOrdersForShipment() {
     // Call the shipOrder function to change the status to "Shipped"
     await shipOrder(selectedOrder._id);
   } catch (error) {
-    console.error("Error viewing orders for shipment:", error);
+    console.error(
+      "\x1b[31mError viewing orders for shipment:",
+      error,
+      "\x1b[0m"
+    );
   }
 
   // Prompt the user to press Enter to continue
-  promptInput("Press Enter to continue to the main menu...");
+  promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
   // Return to the main menu
   displayMenu();
 }
@@ -811,9 +887,11 @@ async function viewOrdersForShipment() {
 async function addNewSupplier() {
   try {
     // Prompt the user to enter supplier details
-    const name = promptInput("Enter supplier name: ");
-    const contact = promptInput("Enter supplier contact: "); // Prompt for contact
-    const description = promptInput("Enter supplier description: ");
+    const name = promptInput("\x1b[36mEnter supplier name:\x1b[0m ");
+    const contact = promptInput("\x1b[36mEnter supplier contact:\x1b[0m "); // Prompt for contact
+    const description = promptInput(
+      "\x1b[36mEnter supplier description:\x1b[0m "
+    );
 
     // Create a new supplier instance
     const newSupplier = new Supplier({ name, contact, description }); // Include contact
@@ -821,9 +899,9 @@ async function addNewSupplier() {
     // Save the new supplier to the database
     await newSupplier.save();
 
-    console.log("New supplier added successfully!");
+    console.log("\x1b[New supplier added successfully!:\x1b[0m");
   } catch (error) {
-    console.error("Error adding new supplier:", error);
+    console.error("\x1b[31mError adding new supplier:", error, "\x1b[0m");
   } finally {
     // Return to the main menu
     displayMenu();
@@ -837,17 +915,19 @@ async function viewSuppliers() {
     const suppliers = await Supplier.find();
 
     // Display the suppliers to the user
-    console.log("Suppliers:");
+    console.log("\x1b[36mSuppliers:\x1b[0m");
     suppliers.forEach((supplier, index) => {
-      console.log(`${index + 1}. ${supplier.name}`);
-      console.log("Contact:", supplier.contact);
-      console.log("---------------------------");
+      console.log(
+        `\x1b[33m${index + 1}.\x1b[0m \x1b[36m${supplier.name}\x1b[0m`
+      );
+      console.log("\x1b[33mContact:\x1b[0m", supplier.contact);
+      console.log("\x1b[36m---------------------------\x1b[0m");
     });
   } catch (error) {
-    console.error("Error viewing suppliers:", error);
+    console.error("\x1b[31mError viewing suppliers:", error, "\x1b[0m");
   } finally {
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   }
@@ -859,35 +939,41 @@ async function viewAllSalesOrders() {
     const orders = await Order.find();
 
     // Display the details of all sales orders
-    console.log("All Sales Orders:");
+    console.log("\x1b[36mAll Sales Orders:\x1b[0m");
     let totalValue = 0;
     orders.forEach((order) => {
-      console.log(`Order Number: ${order._id}`);
+      console.log(`\x1b[33mOrder Number: ${order._id}\x1b[0m`);
       console.log(); // Blank row
       order.products.forEach((product, index) => {
-        console.log(`  ${index + 1}. Product Name: ${product.name}`);
-        console.log(`     Quantity: ${product.quantity}`);
-        console.log(`     Unit Price: $${product.price.toFixed(2)}`);
+        console.log(
+          `  \x1b[36m${index + 1}. Product Name: ${product.name}\x1b[0m`
+        );
+        console.log(`     \x1b[36mQuantity: ${product.quantity}\x1b[0m`);
+        console.log(
+          `     \x1b[36mUnit Price: $${product.price.toFixed(2)}\x1b[0m`
+        );
       });
-      const formattedDate = order.date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      const formattedDate = order.date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
       console.log(); // Blank row
-      console.log(`Total Cost: $${order.totalCost.toFixed(2)}`);
+      console.log(`\x1b[35mTotal Cost: $${order.totalCost.toFixed(2)}\x1b[0m`);
       console.log(); // Blank row
-      console.log(`Order Date: ${formattedDate}`);
-      console.log(`Status: ${order.status}`);
+      console.log(`\x1b[33mOrder Date: ${formattedDate}\x1b[0m`);
+      console.log(`\x1b[31mStatus: ${order.status}\x1b[0m`);
       console.log("---------------------------");
       totalValue += order.totalCost;
     });
-    console.log(`All Sales Orders total value: $${totalValue.toFixed(2)}`);
+    console.log(
+      `All Sales Orders total value: \x1b[32m$${totalValue.toFixed(2)}\x1b[0m`
+    );
   } catch (error) {
-    console.error("Error viewing all sales orders:", error);
+    console.error("\x1b[31mError viewing all sales orders:", error, "\x1b[0m");
   } finally {
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   }
@@ -900,41 +986,63 @@ async function viewProfitFromSales() {
     let totalValue = 0;
     let totalNetValue = 0;
     // Display the details of all sales orders
-    console.log("All Sales Orders:");
+    console.log("\x1b[36mAll Sales Orders:\x1b[0m");
     orders.forEach((order) => {
-      console.log(`Order number: ${order._id}`);
-      const formattedDate = order.date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      console.log(`\x1b[33mOrder number: ${order._id}\x1b[0m`);
+      const formattedDate = order.date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
-      console.log(`Order Date: ${formattedDate}`);
-      console.log(`Status: ${order.status}`);
-      console.log(`Total cost value: $${order.totalNetCost.toFixed(2)}`);
-      console.log(`Total order value: $${order.totalCost.toFixed(2)}`);
+      console.log(`\x1b[33mOrder Date: ${formattedDate}\x1b[0m`);
+      console.log(`\x1b[31mStatus: ${order.status}\x1b[0m`);
+      console.log(
+        `\x1b[34mTotal cost value: \x1b[32m$${order.totalNetCost.toFixed(
+          2
+        )}\x1b[0m`
+      );
+      console.log(
+        `\x1b[34mTotal order value: \x1b[32m$${order.totalCost.toFixed(
+          2
+        )}\x1b[0m`
+      );
       console.log("---------------------------");
       totalValue += order.totalCost;
       totalNetValue += order.totalNetCost;
     });
-    console.log(`All sales orders cost value: $${totalNetValue.toFixed(2)}`);
-    console.log(`All sales orders total value: $${totalValue.toFixed(2)}`);
+    console.log(
+      `\x1b[35mAll sales orders cost value: \x1b[32m$${totalNetValue.toFixed(
+        2
+      )}\x1b[0m`
+    );
+    console.log(
+      `\x1b[35mAll sales orders total value: \x1b[32m$${totalValue.toFixed(
+        2
+      )}\x1b[0m`
+    );
     console.log("---------------------------");
 
     const totalProfitMargin = totalValue - totalNetValue;
-    console.log(`Total profit margin: $${totalProfitMargin.toFixed(2)}`);
+    console.log(
+      `\x1b[35mTotal profit margin: \x1b[32m$${totalProfitMargin.toFixed(
+        2
+      )}\x1b[0m`
+    );
     console.log("---------------------------");
 
-    const offerOption = promptInput('Press "y" to view offers by product or press Enter to continue: ');
+    const offerOption = promptInput(
+      '\x1b[90mPress "y" to view offers by product or press Enter to continue: \x1b[0m'
+    );
 
-    if (offerOption.toLowerCase() === 'y') {
+    if (offerOption.toLowerCase() === "y") {
       // View offers by product
       await viewOffersByProduct();
     }
   } catch (error) {
-    console.error("Error viewing all sales orders:", error);
+    console.error("\x1b[31mError viewing all sales orders:", error, "\x1b[0m");
   } finally {
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   }
@@ -946,13 +1054,15 @@ async function viewOffersByProduct() {
     const products = await Product.find();
 
     // Display the products to the user
-    console.log("Products:");
+    console.log("\x1b[36mProducts:\x1b[0m");
     products.forEach((product, index) => {
-      console.log(`${index + 1}. ${product.name}`);
+      console.log(`\x1b[33m${index + 1}. ${product.name}\x1b[0m`);
     });
 
     // Ask the user to select a product
-    const productOption = promptInput("Select a product (enter number): ");
+    const productOption = promptInput(
+      "\x1b[36mSelect a product (enter number): \x1b[0m"
+    );
 
     // Check if the entered option is valid
     if (
@@ -999,37 +1109,51 @@ async function viewOffersByProduct() {
 
       if (offers.length > 0) {
         // Display the offers containing the selected product
-        console.log(`Offers containing product "${selectedProduct.name}":`);
+        console.log(
+          '\x1b[33mOffers containing product "' +
+            selectedProduct.name +
+            '":\x1b[0m'
+        );
         offers.forEach((offer) => {
-          console.log("Offer includes:");
+          console.log("\x1b[35mOffer includes:\x1b[0m");
           console.log(); // Blank row
           offer.products.forEach((product) => {
-            console.log("  - Name:", product.name);
-            console.log("  - Cost:", product.cost);
-            console.log("  - Sales price:", product.price);
+            console.log("\x1b[36m  - Name:\x1b[0m", product.name);
+            console.log("\x1b[36m  - Cost:\x1b[0m", product.cost);
+            console.log("\x1b[36m  - Sales price:\x1b[0m", product.price);
             console.log(); // Blank row
           });
-          console.log("Offer ID: " + offer._id);
-          console.log("---------------------------");
-          console.log("Total Net Price: $" + offer.totalNetPrice.toFixed(2));
-          console.log("Price: $" + offer.price.toFixed(2));
+          console.log("\x1b[33mOffer ID:\x1b[0m", offer._id);
+          console.log("\x1b[36m---------------------------\x1b[0m");
+          console.log(
+            "\x1b[36mTotal Net Price:\x1b[0m",
+            "$" + offer.totalNetPrice.toFixed(2)
+          );
+          console.log("\x1b[36mPrice:\x1b[0m", "$" + offer.price.toFixed(2));
         });
       } else {
-        console.log(`Product "${selectedProduct.name}" is not in any offerings.`);
+        console.log(
+          '\x1b[33mProduct "' +
+            selectedProduct.name +
+            '" is not in any offerings.\x1b[0m'
+        );
       }
     } else {
-      console.log("Invalid selection.");
+      console.log("\x1b[31mInvalid selection.\x1b[0m");
     }
 
     // Prompt the user to press Enter to continue
-    promptInput("Press Enter to continue to the main menu...");
+    promptInput("\x1b[90mPress Enter to continue to the main menu...\x1b[0m");
     // Return to the main menu
     displayMenu();
   } catch (error) {
-    console.error("Error viewing offers by product:", error);
+    console.error(
+      "\x1b[31mError viewing offers by products:",
+      error,
+      "\x1b[0m"
+    );
   }
 }
-
 
 // Initial function call to start the program
 displayMenu();
