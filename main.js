@@ -545,6 +545,7 @@ async function viewOffersByCategory() {
         console.log("\x1b[36mIncluded Products:\x1b[0m");
         offer.products.forEach((product) => {
           console.log("  - Name:", product.name);
+          console.log("    Price: $" + product.price.toFixed(2));
           console.log("    Category:", selectedCategory.name);
           console.log(
             "\x1b[36m    Supplier:\x1b[0m",
