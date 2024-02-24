@@ -413,6 +413,7 @@ async function viewOffersWithinPriceRange() {
       console.log("Included Products:");
       offer.products.forEach((product) => {
         console.log("  - Name:", product.name);
+        console.log("    Price: $" + product.price.toFixed(2));
         console.log(
           "    Category:",
           product.category ? product.category.name : "N/A"
@@ -499,7 +500,7 @@ async function viewOffersByCategory() {
         console.log("Included Products:");
         offer.products.forEach((product) => {
           console.log("  - Name:", product.name);
-          console.log("    Price: $" + product.price.toFixed(2)); // Display price for each product
+          console.log("    Price: $" + product.price.toFixed(2));
           console.log("    Category:", selectedCategory.name);
           console.log(
             "    Supplier:",
