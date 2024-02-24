@@ -58,7 +58,7 @@ const orderSchema = new mongoose.Schema({
 const Order = mongoose.model("Order", orderSchema);
 
 // Connect to MongoDB
-await mongoose.connect("mongodb://localhost:27017/product_management_system");
+await mongoose.connect("mongodb://127.0.0.1:27017/product_management_system");
 
 // Sample category data
 const categoriesData = [
