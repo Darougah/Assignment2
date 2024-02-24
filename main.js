@@ -499,6 +499,7 @@ async function viewOffersByCategory() {
         console.log("Included Products:");
         offer.products.forEach((product) => {
           console.log("  - Name:", product.name);
+          console.log("    Price: $" + product.price.toFixed(2)); // Display price for each product
           console.log("    Category:", selectedCategory.name);
           console.log(
             "    Supplier:",
@@ -519,7 +520,7 @@ async function viewOffersByCategory() {
     console.error("Error viewing offers by category:", error);
   }
 }
-// Function to view the number of offers based on the availability of their products in stock
+
 async function viewOffersByStockAvailability() {
   try {
     // Fetch offers with their associated products
@@ -540,6 +541,7 @@ async function viewOffersByStockAvailability() {
       console.log("Included Products:");
       offer.products.forEach((product) => {
         console.log("  - Name:", product.name);
+        console.log("    Price: $" + product.price.toFixed(2)); // Display price for each product
         console.log(
           "    Category:",
           product.category ? product.category.name : "N/A"
@@ -636,9 +638,6 @@ async function createOrderForProducts() {
       0
     );
 
-
-
-
     await order.save();
     console.log("Order created successfully:");
   } catch (error) {
@@ -666,7 +665,6 @@ async function createOrderForOffers() {
         console.log("     -", product.name);
       });
     });
-
 
     // Ask the user to select an offer
     const selectedOfferIndex = parseInt(
@@ -869,10 +867,10 @@ async function viewAllSalesOrders() {
         console.log(`     Quantity: ${product.quantity}`);
         console.log(`     Unit Price: $${product.price.toFixed(2)}`);
       });
-      const formattedDate = order.date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      const formattedDate = order.date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
       console.log(); // Blank row
       console.log(`Total Cost: $${order.totalCost.toFixed(2)}`);
@@ -903,10 +901,10 @@ async function viewProfitFromSales() {
     console.log("All Sales Orders:");
     orders.forEach((order) => {
       console.log(`Order number: ${order._id}`);
-      const formattedDate = order.date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      const formattedDate = order.date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
       console.log(`Order Date: ${formattedDate}`);
       console.log(`Status: ${order.status}`);
@@ -924,9 +922,11 @@ async function viewProfitFromSales() {
     console.log(`Total profit margin: $${totalProfitMargin.toFixed(2)}`);
     console.log("---------------------------");
 
-    const offerOption = promptInput('Press "y" to view offers by product or press Enter to continue: ');
+    const offerOption = promptInput(
+      'Press "y" to view offers by product or press Enter to continue: '
+    );
 
-    if (offerOption.toLowerCase() === 'y') {
+    if (offerOption.toLowerCase() === "y") {
       // View offers by product
       await viewOffersByProduct();
     }
@@ -1015,7 +1015,9 @@ async function viewOffersByProduct() {
           console.log("Price: $" + offer.price.toFixed(2));
         });
       } else {
-        console.log(`Product "${selectedProduct.name}" is not in any offerings.`);
+        console.log(
+          `Product "${selectedProduct.name}" is not in any offerings.`
+        );
       }
     } else {
       console.log("Invalid selection.");
@@ -1029,7 +1031,6 @@ async function viewOffersByProduct() {
     console.error("Error viewing offers by product:", error);
   }
 }
-
 
 // Initial function call to start the program
 displayMenu();
