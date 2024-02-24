@@ -451,6 +451,7 @@ async function viewOffersWithinPriceRange() {
       console.log("\x1b[36mIncluded Products:\x1b[0m");
       offer.products.forEach((product) => {
         console.log("  - Name:", product.name);
+        console.log("    Price: $" + product.price.toFixed(2));
         console.log(
           "\x1b[36m    Category:\x1b[0m",
           product.category ? product.category.name : "N/A"
