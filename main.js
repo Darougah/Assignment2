@@ -397,7 +397,7 @@ async function viewProductsBySupplier() {
       products.forEach((product) => {
         console.log("\x1b[36mName:\x1b[0m", product.name);
         console.log("\x1b[36mPrice:\x1b[0m $" + product.price.toFixed(2));
-        console.log("\x1b[36mCost:\x1b[0m", product.cost);
+        console.log("\x1b[36mCost:\x1b[0m $" + product.cost);
         console.log("\x1b[36mStock:\x1b[0m", product.stock);
         console.log("\x1b[36m---------------------------\x1b[0m");
       });
@@ -991,10 +991,10 @@ async function viewProfitFromSales() {
     console.log("\x1b[36mAll Sales Orders:\x1b[0m");
     orders.forEach((order) => {
       console.log(`Order number: ${order._id}`);
-      const formattedDate = order.date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      const formattedDate = order.date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
       console.log(`\x1b[33mOrder Date: ${formattedDate}\x1b[0m`);
       console.log(`\x1b[31mStatus: ${order.status}\x1b[0m`);
@@ -1032,7 +1032,9 @@ async function viewProfitFromSales() {
     );
     console.log("---------------------------");
 
-    const offerOption = promptInput('Press "y" to view offers by product or press Enter to continue: ');
+    const offerOption = promptInput(
+      'Press "y" to view offers by product or press Enter to continue: '
+    );
 
     if (offerOption.toLowerCase() === "y") {
       // View offers by product
@@ -1132,7 +1134,9 @@ async function viewOffersByProduct() {
           console.log("\x1b[36mPrice:\x1b[0m", "$" + offer.price.toFixed(2));
         });
       } else {
-        console.log(`Product "${selectedProduct.name}" is not in any offerings.`);
+        console.log(
+          `Product "${selectedProduct.name}" is not in any offerings.`
+        );
       }
     } else {
       console.log("\x1b[31mInvalid selection.\x1b[0m");
