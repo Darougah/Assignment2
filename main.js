@@ -173,62 +173,62 @@ async function createProduct(name, category, price, cost, stock, supplier) {
 }
 
 async function addNewProduct() {
-  try {
-    // Display prompt for product details
-    console.log("\x1b[36mAdding a new product:\x1b[0m");
+  // Display prompt for product details
+  console.log("\x1b[36mAdding a new product:\x1b[0m");
 
-    // Display existing suppliers
-    const suppliers = await Supplier.find();
-    console.log("\x1b[36mExisting Suppliers:\x1b[0m");
-    suppliers.forEach((supplier, index) => {
-      console.log(`\x1b[33m${index + 1}.\x1b[0m ${supplier.name}`);
+  // Display existing suppliers
+  const suppliers = await Supplier.find();
+  console.log("\x1b[36mExisting Suppliers:\x1b[0m");
+  suppliers.forEach((supplier, index) => {
+    console.log(`\x1b[33m${index + 1}.\x1b[0m ${supplier.name}`);
+  });
+
+  // Ask user to select a supplier or add a new one
+  const supplierOption = promptInput(
+    "\x1b[31mSelect a supplier from the list (enter number) or add a new one (type 'new'):\x1b[0m "
+  );
+
+  if (supplierOption === "new") {
+    addNewSupplierForProduct();
+  } else if (
+    parseInt(supplierOption) >= 1 &&
+    parseInt(supplierOption) <= suppliers.length
+  ) {
+    const selectedSupplier = suppliers[parseInt(supplierOption) - 1];
+
+    // Fetch existing categories
+    const categories = await Category.find();
+    console.log("\x1b[36mExisting Categories:\x1b[0m");
+    categories.forEach((category, index) => {
+      console.log(`\x1b[33m${index + 1}\x1b[0m. ${category.name}`);
     });
 
-    // Ask user to select a supplier or add a new one
-    const supplierOption = promptInput(
-      "\x1b[31mSelect a supplier from the list (enter number) or add a new one (type 'new'):\x1b[0m "
+    // Ask user to select a category or add a new one
+    const categoryOption = promptInput(
+      "\x1b[31mSelect a category from the list (enter number) or add a new one (type 'new'):\x1b[0m "
     );
 
-    if (supplierOption === "new") {
-      addNewSupplierForProduct();
+    if (categoryOption === "new") {
+      addNewCategoryForProduct(selectedSupplier);
     } else if (
-      parseInt(supplierOption) >= 1 &&
-      parseInt(supplierOption) <= suppliers.length
+      parseInt(categoryOption) >= 1 &&
+      parseInt(categoryOption) <= categories.length
     ) {
-      const selectedSupplier = suppliers[parseInt(supplierOption) - 1];
+      const selectedCategory = categories[parseInt(categoryOption) - 1];
 
-      // Fetch existing categories
-      const categories = await Category.find();
-      console.log("\x1b[36mExisting Categories:\x1b[0m");
-      categories.forEach((category, index) => {
-        console.log(`\x1b[33m${index + 1}\x1b[0m. ${category.name}`);
-      });
-
-      // Ask user to select a category or add a new one
-      const categoryOption = promptInput(
-        "\x1b[31mSelect a category from the list (enter number) or add a new one (type 'new'):\x1b[0m "
+      // Ask for product details
+      const name = promptInput("\x1b[34mEnter product name:\x1b[0m ");
+      const price = parseFloat(
+        promptInput("\x1b[34mEnter product price:\x1b[0m ")
+      );
+      const cost = parseFloat(
+        promptInput("\x1b[34mEnter product cost:\x1b[0m ")
+      );
+      const stock = parseInt(
+        promptInput("\x1b[34mEnter product stock:\x1b[0m ")
       );
 
-      if (categoryOption === "new") {
-        await addNewCategoryForProduct(selectedSupplier);
-      } else if (
-        parseInt(categoryOption) >= 1 &&
-        parseInt(categoryOption) <= categories.length
-      ) {
-        const selectedCategory = categories[parseInt(categoryOption) - 1];
-
-        // Ask for product details
-        const name = promptInput("\x1b[34mEnter product name:\x1b[0m ");
-        const price = parseFloat(
-          promptInput("\x1b[34mEnter product price:\x1b[0m ")
-        );
-        const cost = parseFloat(
-          promptInput("\x1b[34mEnter product cost:\x1b[0m ")
-        );
-        const stock = parseInt(
-          promptInput("\x1b[34mEnter product stock:\x1b[0m ")
-        );
-
+      try {
         // Create the new product
         await createProduct(
           name,
@@ -239,21 +239,24 @@ async function addNewProduct() {
           selectedSupplier._id
         );
         console.log("\x1b[32mProduct added successfully!\x1b[0m");
-      } else {
-        console.log("\x1b[31mInvalid selection.\x1b[0m");
+      } catch (error) {
+        console.error("\x1b[31mError adding product:", error, "\x1b[0m");
+      } finally {
+        // Return to the main menu
+        displayMenu();
       }
     } else {
       console.log("\x1b[31mInvalid selection.\x1b[0m");
+      displayMenu();
     }
-  } catch (error) {
-    console.error("\x1b[31mError adding product:", error, "\x1b[0m");
-  } finally {
-    // Return to the main menu
+  } else {
+    console.log("\x1b[31mInvalid selection.\x1b[0m");
     displayMenu();
   }
 }
 
-async function addNewCategoryForProduct(selectedSupplier) {
+// Function to add a new category
+async function addNewCategory() {
   try {
     // Prompt the user to enter category details
     const name = promptInput("\x1b[34mEnter category name:\x1b[0m ");
@@ -268,30 +271,8 @@ async function addNewCategoryForProduct(selectedSupplier) {
     await newCategory.save();
 
     console.log("\x1b[32mNew category added successfully!\x1b[0m");
-
-    // Now, proceed to add the product with the newly created category
-    const price = parseFloat(
-      promptInput("\x1b[34mEnter product price:\x1b[0m ")
-    );
-    const cost = parseFloat(promptInput("\x1b[34mEnter product cost:\x1b[0m "));
-    const stock = parseInt(promptInput("\x1b[34mEnter product stock:\x1b[0m "));
-
-    // Create the new product with the selected category and supplier
-    await createProduct(
-      name, // Use the same name for the product as the category
-      newCategory._id,
-      price,
-      cost,
-      stock,
-      selectedSupplier._id
-    );
-    console.log("\x1b[32mProduct added successfully!\x1b[0m");
   } catch (error) {
-    console.error(
-      "\x1b[31mError adding new category and product:",
-      error,
-      "\x1b[0m"
-    );
+    console.error("\x1b[31mError adding new category:", error, "\x1b[0m");
   } finally {
     // Return to the main menu
     displayMenu();
