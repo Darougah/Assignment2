@@ -209,7 +209,7 @@ async function addNewProduct() {
     );
 
     if (categoryOption === "new") {
-      addNewCategoryForProduct(selectedSupplier);
+      addNewCategory(); // Corrected function call
     } else if (
       parseInt(categoryOption) >= 1 &&
       parseInt(categoryOption) <= categories.length
